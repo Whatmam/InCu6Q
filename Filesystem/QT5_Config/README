@@ -1,0 +1,2 @@
+ - Modified to QT5 Version 5.12.3
+cp -vrfp Filesystem/QT5_Config/package/qt5/ buildroot/package/qt5/

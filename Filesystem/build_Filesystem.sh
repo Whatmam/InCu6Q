@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export ARCH=arm
-export CROSS_COMPILE=$PWD/../Toolchain/gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf
+export CROSS_COMPILE=$PWD/../Toolchain/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf
 
 make clean
 make freescale_imx6dlsabresd_defconfig
@@ -12,7 +12,7 @@ make all -j12
 #========================== Copy Files =======================#
 cd $PWD/rootfs_files
 
-cp -vrfp ../output/images/rootfs.tar.bz2 rootfs/
+cp -vrfp ../output/images/rootfs.tar.bz2 rootfs_output/
 cd rootfs_output
 tar -xvf rootfs.tar.bz2
 rm rootfs.tar.bz2
