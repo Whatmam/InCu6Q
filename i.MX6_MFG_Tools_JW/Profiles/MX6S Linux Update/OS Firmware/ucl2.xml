@@ -1,0 +1,202 @@
+<!--
+* Copyright (C) 2012, Freescale Semiconductor, Inc. All Rights Reserved.
+* The CFG element contains a list of recognized usb devices.
+*  DEV elements provide a name, class, vid and pid for each device.
+*
+* Each LIST element contains a list of update instructions.
+*  "Install" - Erase media and install firmware.
+*  "Update" - Update firmware only.
+*
+* Each CMD element contains one update instruction of attribute type.
+*  "pull" - Does UtpRead(body, file) transaction.
+*  "push" - Does UtpWrite(body, file) transaction.
+*  "drop" - Does UtpCommand(body) then waits for device to disconnect.
+*  "boot" - Finds configured device, forces it to "body" device and downloads "file".
+*  "find" - Waits for "timeout" seconds for the "body" device to connect.
+*  "show" - Parse and show device info in "file".  
+-->
+
+<UCL>
+  <CFG>
+    <STATE name="BootStrap" dev="MX6D" vid="15A2" pid="0061"/>
+		<STATE name="Updater"   dev="MSC" vid="066F" pid="37FF"/> 
+  </CFG>
+  
+	
+
+
+<LIST name="Hybus-i.MX6DL-eMMC-Linux-All" desc="Choose eMMC as media">
+	<CMD state="BootStrap" type="boot" body="BootStrap" file ="u-boot.imx" >Loading U-boot</CMD>
+	<CMD state="BootStrap" type="load" file="uImage" address="0x12000000"
+		loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" >Loading Kernel.</CMD>
+	<CMD state="BootStrap" type="load" file="initramfs.cpio.gz.uboot" address="0x1C000000"
+		loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" >Loading Initramfs.</CMD>
+	<CMD state="BootStrap" type="jump" > Jumping to OS image. </CMD>
+	
+	<CMD state="Updater" type="push" body="$ sleep 5"/>
+	<CMD state="Updater" type="push" body="mknod block,mmcblk0,/dev/mmcblk0,block"/>
+
+	<CMD state="Updater" type="push" body="$ fdisk -l">Fdisk</CMD>
+	<CMD state="Updater" type="push" body="$ dd if=/dev/zero of=/dev/mmcblk0 bs=1M count=6">clean up</CMD>	
+	<CMD state="Updater" type="push" body="$ df">Check</CMD>
+
+	<CMD state="Updater" type="push" body="mknod block,mmcblk0,/dev/mmcblk0,block"/>
+	<CMD state="Updater" type="push" body="send" file="mksdcard.sh.tar">Sending partition shell</CMD>
+	<CMD state="Updater" type="push" body="$ tar xf $FILE "> Partitioning...</CMD>
+	<CMD state="Updater" type="push" body="$ sh mksdcard.sh /dev/mmcblk0"> Partitioning...</CMD>
+	<CMD state="Updater" type="push" body="mknod block/mmcblk0,mmcblk0p1,/dev/mmcblk0p1,block"/>
+	<CMD state="Updater" type="push" body="mknod block/mmcblk0,mmcblk0p2,/dev/mmcblk0p2,block"/>
+	<CMD state="Updater" type="push" body="$ mkfs.vfat /dev/mmcblk0p1">Make partition</CMD>
+	<CMD state="Updater" type="push" body="$ mkfs.ext4 -j /dev/mmcblk0p2">Make partition</CMD>
+
+	<CMD state="Updater" type="push" body="send" file="files/u-boot-dtb.imx">Sending u-boot.imx</CMD>
+	<CMD state="Updater" type="push" body="$ echo 0 > /sys/block/mmcblk0boot0/force_ro">access boot partition 1</CMD>
+	<CMD state="Updater" type="push" body="$ dd if=$FILE of=/dev/mmcblk0 bs=512 seek=2 conv=fsync">write u-boot.imx to eMMC</CMD>
+	<CMD state="Updater" type="push" body="$ dd if=$FILE of=/dev/mmcblk0boot0 bs=512 seek=2 conv=fsync">write u-boot.imx to eMMC</CMD>
+	<CMD state="Updater" type="push" body="$ echo 1 > /sys/block/mmcblk0boot0/force_ro"> re-enable read-only access </CMD>
+	<CMD state="Updater" type="push" body="$ echo 8 > /sys/devices/platform/sdhci-esdhc-imx.0/mmc_host/mmc0/mmc0:0001/boot_config">enable boot partion 1 to boot</CMD>
+	
+	<CMD state="Updater" type="push" body="$ mkdir -p /mnt">Sending zImage</CMD>
+	<CMD state="Updater" type="push" body="$ mount /dev/mmcblk0p1 /mnt">Sending zImage</CMD>
+	<CMD state="Updater" type="push" body="send" file="files/zImage">Sending zImage</CMD>
+	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/zImage">Sending zImage</CMD>
+
+	<CMD state="Updater" type="push" body="send" file="files/imx6dl-JW-rgb.dtb">Sending dtbs</CMD>
+	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/imx6dl-JW-rgb.dtb">Sending dtbs</CMD>
+	<CMD state="Updater" type="push" body="$ ls /mnt">Sending dtbs</CMD>
+	
+	<CMD state="Updater" type="push" body="$ umount /mnt">Sending dtbs</CMD>
+
+	<CMD state="Updater" type="push" body="$ mount /dev/mmcblk0p2 /mnt">Transfer rootfs</CMD>
+	<CMD state="Updater" type="push" body="$ rm -rf /mnt/*">Transfer rootfs</CMD>
+	<CMD state="Updater" type="push" body="pipe tar -jxv -C /mnt" file="files/rootfs.tar.bz2">Transfer rootfs</CMD>
+	<CMD state="Updater" type="push" body="frf">Finishing rootfs write</CMD>
+	<CMD state="Updater" type="push" body="$ umount /mnt">Sending Rootfilesystem</CMD>
+
+	<CMD state="Updater" type="push" body="$ echo Update Complete!">Done</CMD>
+</LIST>
+
+<LIST name="Hybus-i.MX6DL-eMMC-Linux-Kernel" desc="Boot from eMMC">
+	<CMD state="BootStrap" type="boot" body="BootStrap" file ="u-boot.imx" >Loading U-boot</CMD>
+	<CMD state="BootStrap" type="load" file="uImage" address="0x12000000"
+		loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" >Loading Kernel.</CMD>
+	<CMD state="BootStrap" type="load" file="initramfs.cpio.gz.uboot" address="0x1C000000"
+		loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" >Loading Initramfs.</CMD>
+	<CMD state="BootStrap" type="jump" > Jumping to OS image. </CMD>
+
+	<CMD state="Updater" type="push" body="$ sleep 4"/>
+	<CMD state="Updater" type="push" body="mknod block,mmcblk0,/dev/mmcblk0,block"/>
+
+	<CMD state="Updater" type="push" body="$ mkdir -p /mnt">Sending zImage</CMD>
+	<CMD state="Updater" type="push" body="$ mount /dev/mmcblk0p1 /mnt">Sending zImage</CMD>
+	<CMD state="Updater" type="push" body="send" file="files/zImage">Sending zImage</CMD>
+	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/zImage">Sending zImage</CMD>
+
+	<CMD state="Updater" type="push" body="send" file="files/imx6dl-JW-rgb.dtb">Sending dtbs</CMD>
+	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/imx6dl-JW-rgb.dtb">Sending dtbs</CMD>
+	<CMD state="Updater" type="push" body="$ ls /mnt">Sending dtbs</CMD>
+	<CMD state="Updater" type="push" body="$ umount /mnt">Sending dtbs</CMD>
+	
+	<CMD state="Updater" type="push" body="$ echo Update Complete!">Done</CMD>
+</LIST>
+
+
+<LIST name="Hybus-i.MX6DL-eMMC-Linux-Filesystem" desc="Choose eMMC as media">
+	<CMD state="BootStrap" type="boot" body="BootStrap" file ="u-boot.imx" >Loading U-boot</CMD>
+	<CMD state="BootStrap" type="load" file="uImage" address="0x12000000"
+		loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" >Loading Kernel.</CMD>
+	<CMD state="BootStrap" type="load" file="initramfs.cpio.gz.uboot" address="0x1C000000"
+		loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" >Loading Initramfs.</CMD>
+	<CMD state="BootStrap" type="jump" > Jumping to OS image. </CMD>
+	
+	<CMD state="Updater" type="push" body="$ sleep 5"/>
+	<CMD state="Updater" type="push" body="mknod block,mmcblk0,/dev/mmcblk0,block"/>
+	
+	<CMD state="Updater" type="push" body="$ mkdir -p /mnt">Transfer rootfs</CMD>
+	<CMD state="Updater" type="push" body="$ mount /dev/mmcblk0p2 /mnt">Transfer rootfs</CMD>
+	<CMD state="Updater" type="push" body="$ rm -rf /mnt/*">Transfer rootfs</CMD>
+	<CMD state="Updater" type="push" body="pipe tar -jxv -C /mnt" file="files/rootfs.tar.bz2">Transfer rootfs</CMD>
+	<CMD state="Updater" type="push" body="frf">Finishing rootfs write</CMD>
+	<CMD state="Updater" type="push" body="$ umount /mnt">Sending Rootfilesystem</CMD>
+
+	<CMD state="Updater" type="push" body="$ echo Update Complete!">Done</CMD>
+</LIST>
+
+
+	<LIST name="Hybus-i.MX6DL_eMMC_Linux" desc="Boot from eMMC">
+		<CMD state="BootStrap" type="boot" body="BootStrap" file ="u-boot.imx" >Loading U-boot</CMD>
+		<CMD state="BootStrap" type="load" file="uImage" address="0x12000000"
+			loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" >Loading Kernel.</CMD>
+		<CMD state="BootStrap" type="load" file="initramfs.cpio.gz.uboot" address="0x1C000000"
+			loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" >Loading Initramfs.</CMD>
+		<CMD state="BootStrap" type="jump" > Jumping to OS image. </CMD>
+
+		<CMD state="Updater" type="push" body="$ sleep 5"/>
+		<CMD state="Updater" type="push" body="mknod block,mmcblk0,/dev/mmcblk0,block"/>
+		<!-- <CMD state="Updater" type="push" body="$ fdisk">Fdisk</CMD> -->
+
+		<!-- Erase & Clean eMMC -->
+		<CMD state="Updater" type="push" body="$ dd if=/dev/zero of=/dev/mmcblk0 bs=1M count=30">Erase eMMC Header</CMD>
+		<CMD state="Updater" type="push" body="$ dd if=/dev/zero of=/dev/mmcblk0 bs=512 seek=1536 count=16">clean up u-boot parameter</CMD>
+		<CMD state="Updater" type="push" body="$ ls /sys/block">clean up u-boot parameter</CMD>
+		<CMD state="Updater" type="push" body="$ echo 0 > /sys/block/mmcblk0/mmcblk0boot0/force_ro">access boot partition 1</CMD>
+		<CMD state="Updater" type="push" body="$ dd if=/dev/zero of=/dev/mmcblk0boot0 bs=1024 count=200">clean up u-boot parameter</CMD>
+		<CMD state="Updater" type="push" body="$ echo 0 > /sys/block/mmcblk0/mmcblk0boot0/force_ro">re-enable read-only access</CMD>
+		
+		<!-- Making Partition -->		
+		<CMD state="Updater" type="push" body="send" file="mksdcard.sh.tar">Sending partition shell</CMD>
+		<CMD state="Updater" type="push" body="$ tar xf $FILE "> Partitioning...</CMD>
+		<CMD state="Updater" type="push" body="$ sh mksdcard.sh /dev/mmcblk0"> Partitioning...</CMD>
+		<CMD state="Updater" type="push" body="mknod block/mmcblk0,mmcblk0p1,/dev/mmcblk0p1,block"/>
+		
+		<!-- Bootloader -->
+		<!-- first boot -->
+		<CMD state="Updater" type="push" body="send" file="files/u-boot.imx">Sending U-Boot</CMD>
+		<CMD state="Updater" type="push" body="$ echo 0 > /sys/block/mmcblk0/mmcblk0boot0/force_ro">access boot partition 1</CMD>
+		<CMD state="Updater" type="push" body="$ dd if=$FILE of=/dev/mmcblk0 bs=512 seek=2 conv=fsync">write u-boot.imx to eMMC</CMD>
+		<CMD state="Updater" type="push" body="$ dd if=$FILE of=/dev/mmcblk0boot0 bs=512 seek=2 conv=fsync">write u-boot.imx to eMMC</CMD>
+		<CMD state="Updater" type="push" body="$ echo 1 > /sys/block/mmcblk0/mmcblk0boot0/force_ro"> re-enable read-only access </CMD>
+		<CMD state="Updater" type="push" body="$ echo 8 > /sys/devices/platform/sdhci-esdhc-imx.0/mmc_host/mmc0/mmc0:0001/boot_config">enable boot partion 1 to boot</CMD>
+
+		<!-- Kernel -->
+		<CMD state="Updater" type="push" body="send" file="files/uImage">Sending kernel uImage</CMD>
+		<CMD state="Updater" type="push" body="$ dd if=$FILE of=/dev/mmcblk0p5 conv=fsync">write kernel image to eMMC</CMD>
+		
+		<!-- Making FAT partition -->
+		<CMD state="Updater" type="push" body="$ ls -al">Formatting mmcblk0p4 to FAT partition</CMD>
+		<CMD state="Updater" type="push" body="$ ./newfs_msdos /dev/mmcblk0p4">Formatting mmcblk0p4 to FAT partition</CMD>
+		<CMD state="Updater" type="push" body="$ mkfs.ext3 -jF /dev/mmcblk0p2">Formatting mmcblk0p2 ext3 partition</CMD>
+		<CMD state="Updater" type="push" body="$ mkfs.ext3 -jF /dev/mmcblk0p3">Formatting mmcblk0p3 ext3 partition</CMD>
+		
+		<CMD state="Updater" type="push" body="$ mkdir -p /mnt/mmcblk0p2"/> 
+		<CMD state="Updater" type="push" body="$ mount -t ext3 /dev/mmcblk0p2 /mnt/mmcblk0p2"/>
+		<CMD state="Updater" type="push" body="pipe tar -jxv -C /mnt/mmcblk0p2" file="files/rootfs.tar.bz2">Sending and writting rootfs</CMD>
+
+		<CMD state="Updater" type="push" body="frf">Finishing rootfs write</CMD>
+		<CMD state="Updater" type="push" body="$ umount /mnt/mmcblk0p2">Unmounting rootfs partition</CMD>
+		<CMD state="Updater" type="push" body="$ fdisk -l">fdisk</CMD>
+		<CMD state="Updater" type="push" body="$ cat /proc/partitions">partition Information</CMD>
+		
+		<CMD state="Updater" type="push" body="$ echo Update Complete!">Done</CMD>
+	</LIST>
+
+<LIST name="Hybus-iMX6DL-eMMC-Erase" desc="Boot from eMMC">
+		<CMD state="BootStrap" type="boot" body="BootStrap" file ="u-boot.imx" >Loading U-boot</CMD>
+		<CMD state="BootStrap" type="load" file="uImage" address="0x10800000"
+			loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" >Loading Kernel.</CMD>
+		<CMD state="BootStrap" type="load" file="initramfs.cpio.gz.uboot" address="0x10C00000"
+			loadSection="OTH" setSection="OTH" HasFlashHeader="FALSE" >Loading Initramfs.</CMD>
+		<CMD state="BootStrap" type="jump" > Jumping to OS image. </CMD>
+		
+		<CMD state="Updater" type="push" body="$ dd if=/dev/zero of=/dev/mmcblk0 bs=512 seek=1536 count=16">clean up u-boot parameter</CMD>
+		<CMD state="Updater" type="push" body="$ echo 0 > /sys/block/mmcblk0/mmcblk0boot0/force_ro">access boot partition 1</CMD>
+		<CMD state="Updater" type="push" body="$ dd if=/dev/zero of=/dev/mmcblk0boot0 bs=1024 count=200">erase mmcblk0boot0 of eMMC</CMD>
+		<CMD state="Updater" type="push" body="$ dd if=/dev/zero of=/dev/mmcblk0 bs=1M conv=fsync count=3728">Erase eMMC</CMD>
+		<CMD state="Updater" type="push" body="frf">Finishing eMMC Erase</CMD>
+		<CMD state="Updater" type="push" body="$ echo 1 > /sys/block/mmcblk0/mmcblk0boot0/force_ro">access boot partition 1</CMD>
+
+		<CMD state="Updater" type="push" body="$ echo Erase Complete!">Done</CMD>
+	</LIST>
+	
+</UCL>
+

@@ -1,0 +1,34 @@
+DLL version: 2.2.3
+Thursday, March 04, 2021 11:57:47   Start new logging
+ModuleID[2] LevelID[10]: CMyExceptionHandler thread is running
+ModuleID[2] LevelID[1]: new MxHidDeviceClass
+ModuleID[2] LevelID[10]: DeviceTypeDisk--_devices size: 1
+ModuleID[2] LevelID[10]: Volume--StorageDisk, Disk->_driveNumber:2, Volume->_diskNumber:2
+ModuleID[2] LevelID[10]: DeviceTypeDisk--find Disk device: 0410AEA8
+ModuleID[2] LevelID[10]: Device::hubIndex::getmsc, return the port index is: 2
+ModuleID[2] LevelID[10]: Device Manager thread is running
+ModuleID[2] LevelID[10]: DeviceManager::DevChangeWnd::OnDeviceChange() - DEVICE_ARRIVAL_EVT(\\?\USB#VID_15A2&PID_0061#6&25438eb7&1&4#{a5dcbf10-6530-11d2-901f-00c04fb951ed})
+ModuleID[2] LevelID[10]: DeviceManager::DevChangeWnd::OnDeviceChange() - end
+ModuleID[2] LevelID[10]: DeviceManager::OnMsgDeviceEvent() - DEVICE_ARRIVAL_EVT(\\?\USB#VID_15A2&PID_0061#6&25438eb7&1&4#{a5dcbf10-6530-11d2-901f-00c04fb951ed})
+ModuleID[2] LevelID[10]: DeviceClass::FindDeviceByUsbPath--DeviceListType_Current, _devices.size: 0
+ModuleID[2] LevelID[1]: DeviceClass::FindDeviceByUsbPath() - DeviceListType_New--index: 0
+ModuleID[2] LevelID[1]: DeviceClass::FindDeviceByUsbPath() - DeviceListType_New--devPath: \\?\hid#vid_045e&pid_07f8&mi_01&col01#8&548389&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}
+ModuleID[2] LevelID[1]: DeviceClass::FindDeviceByUsbPath() - DeviceListType_New--index: 1
+ModuleID[2] LevelID[1]: DeviceClass::FindDeviceByUsbPath() - DeviceListType_New--devPath: \\?\hid#vid_15a2&pid_0061#7&2e250fc6&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}
+ModuleID[2] LevelID[10]: new MxHidDevice[04115008]
+ModuleID[2] LevelID[10]: DeviceClass::FindDeviceByUsbPath--DeviceListType_New, devInstPathToFind: USB\VID_15A2&PID_0061\6&25438EB7&1&4, _deviceInstanceID: USB\VID_15A2&PID_0061\6&25438EB7&1&4
+ModuleID[2] LevelID[10]: DeviceClass::FindDeviceByUsbPath--DeviceListType_New, Find the device, Port: 4
+ModuleID[2] LevelID[10]: DeviceClass::AddUsbDevice() successful USB#VID_15A2&PID_0061#6&25438EB7&1&4#{A5DCBF10-6530-11D2-901F-00C04FB951ED} add to current list, retrycount: 0
+ModuleID[2] LevelID[10]: DeviceManager::OnMsgDeviceEvent() - DEVICE_ARRIVAL_EVT,[MxHidDeviceClass] vid_15a2&pid_0061, Hub:3-Port:4
+ModuleID[2] LevelID[10]: DeviceManager::OnMsgDeviceEvent() - DEVICE_ARRIVAL_EVT, Notify
+ModuleID[2] LevelID[10]: CmdOpreation[0]--OnDeviceChangeNotify, Volume Arrive/Remove or Device Arrive/Remove
+ModuleID[2] LevelID[10]: CmdOpreation[0]--OnDeviceChangeNotify, m_p_usb_port is not NULL, so only refresh
+ModuleID[2] LevelID[10]: CmdOpreation[0]--OnDeviceChangeNotify, Volume/Device Arrive
+ModuleID[2] LevelID[1]: CmdOpreation[0]--set m_hDeviceArriveEvent.
+ModuleID[2] LevelID[10]: CmdOpreation[0]--WaitforEvents device arrive1
+ModuleID[2] LevelID[10]: CmdOperation[0] device chagned and reset to state 0
+ModuleID[2] LevelID[1]: Can't set m_hRunEvent before it initialized or it already run
+
+ModuleID[2] LevelID[10]: ExecuteCommand--Boot[WndIndex:0], File is Z:\JW_bio\incu6q\i.MX6_MFG_Tools_JW\Profiles\MX6S Linux Update\OS Firmware\u-boot.imx
+ModuleID[2] LevelID[1]: Can't set m_hRunEvent before it initialized or it already run
+
