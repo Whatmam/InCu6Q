@@ -324,6 +324,12 @@ include scripts/subarch.include
 UTS_MACHINE 	:= $(ARCH)
 SRCARCH 	:= $(ARCH)
 
+
+ARCH		=arm
+CROSS_COMPILE	=../Toolchain/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-
+
+
+
 # Additional ARCH settings for x86
 ifeq ($(ARCH),i386)
         SRCARCH := x86

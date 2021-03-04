@@ -4,10 +4,10 @@
 #
 
 #
-# Compiler: gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+# Compiler: arm-none-linux-gnueabihf-gcc (GNU Toolchain for the A-profile Architecture 9.2-2019.12 (arm-9.10)) 9.2.1 20191025
 #
 CONFIG_CC_IS_GCC=y
-CONFIG_GCC_VERSION=70500
+CONFIG_GCC_VERSION=90201
 CONFIG_CLANG_VERSION=0
 CONFIG_IRQ_WORK=y
 CONFIG_BUILDTIME_EXTABLE_SORT=y
@@ -1451,7 +1451,7 @@ CONFIG_MDIO_BUS=y
 # CONFIG_MDIO_MSCC_MIIM is not set
 CONFIG_PHYLIB=y
 CONFIG_SWPHY=y
-# CONFIG_LED_TRIGGER_PHY is not set
+CONFIG_LED_TRIGGER_PHY=y
 
 #
 # MII PHY device drivers
@@ -1487,7 +1487,7 @@ CONFIG_MICREL_PHY=y
 # CONFIG_REALTEK_PHY is not set
 # CONFIG_RENESAS_PHY is not set
 # CONFIG_ROCKCHIP_PHY is not set
-# CONFIG_SMSC_PHY is not set
+CONFIG_SMSC_PHY=y
 # CONFIG_STE10XP is not set
 # CONFIG_TERANETICS_PHY is not set
 # CONFIG_VITESSE_PHY is not set
