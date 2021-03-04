@@ -11,23 +11,7 @@
 	aliases {
 		mxcfb0 = &mxcfb1;
 		mxcfb1 = &mxcfb2;
-		mxcfb2 = &mxcfb3;
-		mxcfb3 = &mxcfb4;
 	};
-
-	battery: max8903@0 {
-		compatible = "fsl,max8903-charger";
-		pinctrl-names = "default";
-		dok_input = <&gpio2 24 1>;
-		uok_input = <&gpio1 27 1>;
-		chg_input = <&gpio3 23 1>;
-		flt_input = <&gpio5 2 1>;
-		fsl,dcm_always_high;
-		fsl,dc_valid;
-		fsl,usb_valid;
-		status = "okay";
-	};
-
 	hannstar_cabc {
 		compatible = "hannstar,cabc";
 		lvds0 {
@@ -51,16 +35,6 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		// reg_usb_otg_vbus: regulator@0 {
-		// 	compatible = "regulator-fixed";
-		// 	reg = <0>;
-		// 	regulator-name = "usb_otg_vbus";
-		// 	regulator-min-microvolt = <5000000>;
-		// 	regulator-max-microvolt = <5000000>;
-		// 	gpio = <&gpio3 22 0>;
-		// 	enable-active-high;
-		// 	vin-supply = <&swbst_reg>;
-		// };
 
 		reg_usb_h1_pwr: regulator@0 {
 			compatible = "regulator-fixed";
@@ -83,56 +57,7 @@
 			enable-active-low;
             regulator-always-on;
 		};
-
-		reg_audio: regulator@2 {
-			compatible = "regulator-fixed";
-			reg = <2>;
-			regulator-name = "wm8962-supply";
-			gpio = <&gpio4 10 0>;
-			enable-active-high;
-		};
-
-		reg_pcie: regulator@3 {
-			compatible = "regulator-fixed";
-			reg = <3>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&pinctrl_pcie_reg>;
-			regulator-name = "MPCIE_3V3";
-			regulator-min-microvolt = <3300000>;
-			regulator-max-microvolt = <3300000>;
-			gpio = <&gpio3 19 0>;
-			enable-active-high;
-		};
-
-		reg_sensor: regulator@4 {
-			compatible = "regulator-fixed";
-			reg = <4>;
-			regulator-name = "sensor-supply";
-			regulator-min-microvolt = <3300000>;
-			regulator-max-microvolt = <3300000>;
-			gpio = <&gpio2 31 0>;
-			startup-delay-us = <500>;
-			enable-active-high;
-		};
-
-		reg_hdmi: regulator@5 {
-			compatible = "regulator-fixed";
-			reg = <5>;
-			regulator-name = "hdmi-5v-supply";
-			regulator-min-microvolt = <5000000>;
-			regulator-max-microvolt = <5000000>;
-			enable-active-high;
-			hdmi-5v-supply = <&swbst_reg>;
-		};
-
-		reg_mipi_dsi_pwr_on: mipi_dsi_pwr_on {
-			compatible = "regulator-fixed";
-			regulator-name = "mipi_dsi_pwr_on";
-			gpio = <&gpio6 14 0>;
-			enable-active-high;
-		};
 	};
-
 	gpio-keys {
 		compatible = "gpio-keys";
 		pinctrl-names = "default";
@@ -187,13 +112,6 @@
 		mic-det-gpios = <&gpio1 9 1>;
 	};
 
-	sound-hdmi {
-		compatible = "fsl,imx6q-audio-hdmi",
-			     "fsl,imx-audio-hdmi";
-		model = "imx-audio-hdmi";
-		hdmi-controller = <&hdmi_audio>;
-	};
-
 	mxcfb1: fb@0 {
 		compatible = "fsl,mxc_sdc_fb";
 		disp_dev = "ldb";
@@ -210,27 +128,6 @@
 		interface_pix_fmt = "RGB24";
 		mode_str ="1920x1080M@60";
 		default_bpp = <24>;
-		int_clk = <0>;
-		late_init = <0>;
-		status = "disabled";
-	};
-
-	mxcfb3: fb@2 {
-		compatible = "fsl,mxc_sdc_fb";
-		disp_dev = "lcd";
-		interface_pix_fmt = "RGB565";
-		mode_str ="CLAA-WVGA";
-		default_bpp = <16>;
-		int_clk = <0>;
-		late_init = <0>;
-		status = "disabled";
-	};
-
-	mxcfb4: fb@3 {
-		compatible = "fsl,mxc_sdc_fb";
-		disp_dev = "ldb";
-		interface_pix_fmt = "RGB666";
-		default_bpp = <16>;
 		int_clk = <0>;
 		late_init = <0>;
 		status = "disabled";
@@ -253,51 +150,8 @@
 		default-brightness-level = <7>;
 		status = "okay";
 	};
-
-	v4l2_cap_0 {
-		compatible = "fsl,imx6q-v4l2-capture";
-		ipu_id = <0>;
-		csi_id = <0>;
-		mclk_source = <0>;
-		status = "okay";
-	};
-
-	v4l2_cap_1 {
-		compatible = "fsl,imx6q-v4l2-capture";
-		ipu_id = <0>;
-		csi_id = <1>;
-		mclk_source = <0>;
-		status = "okay";
-	};
-
-	v4l2_out {
-		compatible = "fsl,mxc_v4l2_output";
-		status = "okay";
-	};
 };
 
-&ipu1_csi0_from_ipu1_csi0_mux {
-	bus-width = <8>;
-	data-shift = <12>; /* Lines 19:12 used */
-	hsync-active = <1>;
-	vsync-active = <1>;
-};
-
-&ipu1_csi0_mux_from_parallel_sensor {
-	/* Downstream driver doesn't use endpoints */
-	/*
-	remote-endpoint = <&ov5642_to_ipu1_csi0_mux>;
-	 */
-};
-
-&ipu1_csi0 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_ipu1_csi0>;
-};
-
-&mipi_csi {
-	status = "okay";
-};
 
 &audmux {
 	pinctrl-names = "default";
@@ -310,21 +164,6 @@
 			  <&clks IMX6QDL_CLK_LDB_DI1_SEL>;
 	assigned-clock-parents = <&clks IMX6QDL_CLK_PLL2_PFD0_352M>,
 				 <&clks IMX6QDL_CLK_PLL2_PFD0_352M>;
-};
-
-&ecspi1 {
-	cs-gpios = <&gpio4 9 0>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_ecspi1>;
-	status = "okay";
-
-	flash: m25p80@0 {
-		#address-cells = <1>;
-		#size-cells = <1>;
-		compatible = "st,m25p32", "jedec,spi-nor";
-		spi-max-frequency = <20000000>;
-		reg = <0>;
-	};
 };
 
 &fec {
@@ -352,28 +191,7 @@
 	status = "okay";
 };
 
-&hdmi_audio {
-	status = "okay";
-};
 
-&hdmi_cec {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_hdmi_cec>;
-	status = "okay";
-};
-
-&hdmi_core {
-	ipu_id = <0>;
-	disp_id = <0>;
-	status = "okay";
-};
-
-&hdmi_video {
-	fsl,phy_reg_vlev = <0x294>;
-	fsl,phy_reg_cksymtx = <0x800d>;
-	HDMI-supply = <&reg_hdmi>;
-	status = "okay";
-};
 
 &i2c1 {
 	clock-frequency = <100000>;
@@ -385,14 +203,6 @@
 		compatible = "wlf,wm8962";
 		reg = <0x1a>;
 		clocks = <&clks IMX6QDL_CLK_CKO>;
-		DCVDD-supply = <&reg_audio>;
-		DBVDD-supply = <&reg_audio>;
-		AVDD-supply = <&reg_audio>;
-		CPVDD-supply = <&reg_audio>;
-		MICVDD-supply = <&reg_audio>;
-		PLLVDD-supply = <&reg_audio>;
-		SPKVDD1-supply = <&reg_audio>;
-		SPKVDD2-supply = <&reg_audio>;
 		gpio-cfg = <
 			0x0000 /* 0:Default */
 			0x0000 /* 1:Default */
@@ -402,34 +212,6 @@
 			0x0000 /* 5:Default */
 		>;
 		amic-mono;
-	};
-
-	mma8451@1c {
-		compatible = "fsl,mma8451";
-		reg = <0x1c>;
-		position = <0>;
-		vdd-supply = <&reg_sensor>;
-		vddio-supply = <&reg_sensor>;
-		interrupt-parent = <&gpio1>;
-		interrupts = <18 8>;
-		interrupt-route = <1>;
-	};
-
-	ov564x: ov564x@3c {
-		compatible = "ovti,ov564x";
-		reg = <0x3c>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_ipu1_2>;
-		clocks = <&clks IMX6QDL_CLK_CKO>;
-		clock-names = "csi_mclk";
-		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
-		AVDD-supply = <&vgen3_reg>;  /* 2.8v, on rev C board is VGEN3, on rev B board is VGEN5 */
-		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
-//		pwn-gpios = <&gpio1 16 1>;   /* active low: SD1_DAT0 */
-//		rst-gpios = <&gpio1 17 0>;   /* active high: SD1_DAT1 */
-		csi_id = <0>;
-		mclk = <24000000>;
-		mclk_source = <0>;
 	};
 };
 
@@ -560,26 +342,6 @@
 			};
 		};
 	};
-
-	hdmi_edid: edid@50 {
-		compatible = "fsl,imx6-hdmi-i2c";
-		reg = <0x50>;
-	};
-
-	ov564x_mipi: ov564x_mipi@3c { /* i2c2 driver */
-		compatible = "ovti,ov564x_mipi";
-		reg = <0x3c>;
-		clocks = <&clks 201>;
-		clock-names = "csi_mclk";
-		DOVDD-supply = <&vgen4_reg>; /* 1.8v */
-		AVDD-supply = <&vgen3_reg>;  /* 2.8v rev C board is VGEN3 rev B board is VGEN5 */
-		DVDD-supply = <&vgen2_reg>;  /* 1.5v*/
-//		pwn-gpios = <&gpio1 19 1>;   /* active low: SD1_CLK */
-//		rst-gpios = <&gpio1 20 0>;   /* active high: SD1_DAT2 */
-		csi_id = <1>;
-		mclk = <24000000>;
-		mclk_source = <0>;
-	};
 };
 
 &i2c3 {
@@ -598,24 +360,6 @@
 		wakeup-gpios = <&gpio6 7 0>;
 	};
 
-	isl29023@44 {
-		compatible = "fsl,isl29023";
-		reg = <0x44>;
-		rext = <499>;
-		vdd-supply = <&reg_sensor>;
-		interrupt-parent = <&gpio3>;
-		interrupts = <9 2>;
-	};
-
-	mag3110@e {
-		compatible = "fsl,mag3110";
-		reg = <0xe>;
-		position = <2>;
-		vdd-supply = <&reg_sensor>;
-		vddio-supply = <&reg_sensor>;
-		interrupt-parent = <&gpio3>;
-		interrupts = <16 1>;
-	};
 };
 
 &iomuxc {
@@ -840,18 +584,6 @@
 			>;
 		};
 
-		pinctrl_pcie: pciegrp {
-			fsl,pins = <
-				MX6QDL_PAD_GPIO_17__GPIO7_IO12	0x1b0b0
-			>;
-		};
-
-		pinctrl_pcie_reg: pciereggrp {
-			fsl,pins = <
-				MX6QDL_PAD_EIM_D19__GPIO3_IO19	0x1b0b0
-			>;
-		};
-
 		pinctrl_pwm1: pwm1grp {
 			fsl,pins = <
 				/*MX6QDL_PAD_SD1_DAT3__PWM1_OUT		0x1b0b1*/
@@ -930,27 +662,6 @@
 				*/
 			>;
 		};
-
-		pinctrl_usdhc4: usdhc4grp {
-			fsl,pins = <
-				MX6QDL_PAD_SD4_CMD__SD4_CMD		0x17059
-				MX6QDL_PAD_SD4_CLK__SD4_CLK		0x10059
-				MX6QDL_PAD_SD4_DAT0__SD4_DATA0		0x17059
-				MX6QDL_PAD_SD4_DAT1__SD4_DATA1		0x17059
-				MX6QDL_PAD_SD4_DAT2__SD4_DATA2		0x17059
-				MX6QDL_PAD_SD4_DAT3__SD4_DATA3		0x17059
-				MX6QDL_PAD_SD4_DAT4__SD4_DATA4		0x17059
-				MX6QDL_PAD_SD4_DAT5__SD4_DATA5		0x17059
-				MX6QDL_PAD_SD4_DAT6__SD4_DATA6		0x17059
-				MX6QDL_PAD_SD4_DAT7__SD4_DATA7		0x17059
-			>;
-		};
-
-		pinctrl_wdog: wdoggrp {
-			fsl,pins = <
-				MX6QDL_PAD_GPIO_1__WDOG2_B 0x80000000
-			>;
-		};
 	};
 
 };
@@ -1000,32 +711,6 @@
 			};
 		};
 	};
-};
-
-&mipi_csi {
-	status = "okay";
-	ipu_id = <0>;
-	csi_id = <1>;
-	v_channel = <0>;
-	lanes = <2>;
-};
-
-&mipi_dsi {
-	dev_id = <0>;
-	disp_id = <1>;
-	lcd_panel = "TRULY-WVGA";
-	disp-power-on-supply = <&reg_mipi_dsi_pwr_on>;
-	reset-gpios = <&gpio6 11 GPIO_ACTIVE_LOW>;
-	reset-delay-us = <50>;
-	status = "okay";
-};
-
-&pcie {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_pcie>;
-	reset-gpio = <&gpio7 12 GPIO_ACTIVE_LOW>;
-	vpcie-supply = <&reg_pcie>;
-	status = "okay";
 };
 
 &pwm1 {
@@ -1108,14 +793,6 @@
 	status = "okay";
 };
 
-&usbphy1 {
-	fsl,tx-d-cal = <106>;
-};
-
-&usbphy2 {
-	fsl,tx-d-cal = <106>;
-};
-
 &usdhc1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc1>;
@@ -1139,27 +816,5 @@
 	no-1-8-v;
 	keep-power-in-suspend;
 	enable-sdio-wakeup;
-	status = "okay";
-};
-
-&usdhc4 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_usdhc4>;
-	bus-width = <8>;
-	non-removable;
-	no-1-8-v;
-	auto-cmd23-broken;
-	keep-power-in-suspend;
-	status = "okay";
-};
-
-&wdog1 {
-	status = "disabled";
-};
-
-&wdog2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_wdog>;
-	fsl,ext-reset-output;
 	status = "okay";
 };
