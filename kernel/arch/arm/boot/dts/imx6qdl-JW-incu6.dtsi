@@ -49,6 +49,15 @@
 		};
 	};
 
+	leds {
+		compatible = "gpio-leds";
+		status-led {
+			label = "status-led";
+			gpios = <&gpio6 29 0>;
+			linux,default-trigger = "heartbeat";
+		};
+	};
+
 	gpio_switch {
 		compatible = "gpio_switch";
 		pinctrl-names = "default";
@@ -329,6 +338,10 @@
 	imx6qdl-jw-incu6 {
 		pinctrl_hog: hoggrp {
 			fsl,pins = <
+				/* LCD Driver Enable */
+				MX6QDL_PAD_SD4_DAT1__GPIO2_IO09		0x1b0b1
+				/* Status LED */
+				MX6QDL_PAD_RGMII_RD3__GPIO6_IO29	0x1b0b1
 				/* USBH1 PWR */
 				MX6QDL_PAD_GPIO_4__GPIO1_IO04	0x1b0b1
 				/* TODO USBH1 OVC */
@@ -341,6 +354,12 @@
 				MX6QDL_PAD_DI0_PIN4__GPIO4_IO20		0x1b0b0
 				/* BT_Check */
 				MX6QDL_PAD_NANDF_CS2__GPIO6_IO15	0x1b0b0
+				/* TSP_nINT */
+				MX6QDL_PAD_SD4_DAT0__GPIO2_IO08 	0x1b0b1
+				/* SPK_PWR_EN */
+				MX6QDL_PAD_SD4_DAT4__GPIO2_IO12 	0x1b0b1
+				/* RTC_nINT */
+				MX6QDL_PAD_SD4_DAT5__GPIO2_IO13 	0x1b0b1
 			>;
 		};
 
