@@ -10,7 +10,6 @@
 / {
 	aliases {
 		mxcfb0 = &mxcfb1;
-		mxcfb1 = &mxcfb2;
 	};
 	hannstar_cabc {
 		compatible = "hannstar,cabc";
@@ -94,18 +93,12 @@
 
 	mxcfb1: fb@0 {
 		compatible = "fsl,mxc_sdc_fb";
-		disp_dev = "lcd";
-		interface_pix_fmt = "RGB24";
-		default_bpp = <32>;
-		int_clk = <0>;
-		late_init = <0>;
-		status = "disabled";
-	};
-
-	mxcfb2: fb@1 {
-		compatible = "fsl,mxc_sdc_fb";
-		disp_dev = "ldb";
-		interface_pix_fmt = "RGB666";
+		//disp_dev = "lcd";
+		//mo{
+		//mode_str ="AT070TN83-WVGA";
+		//interface_pix_fmt = "RGB24";
+		//disp_dev = "ldb";
+		//interface_pix_fmt = "RGB666";
 		default_bpp = <32>;
 		int_clk = <0>;
 		late_init = <0>;
@@ -119,7 +112,7 @@
 		default_ifmt = "RGB24";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_ipu1>;
-		status = "okay";
+		status = "disabled";
 	};
 
 	backlight {
@@ -561,14 +554,13 @@
 };
 
 &ldb {
-	status = "okay";
+	status = "disabled";
 	/* LVDS Dual Channel Configure  -> If You Need, Activate Mode*/
 	//split-mode;
 	//dual-mode;
 	lvds-channel@0 {
 		fsl,data-mapping = "spwg";
 		fsl,data-width = <18>;
-		/* Single Channel Uses LVDS1 Channels */
 		status = "disabled";
 
 		display-timings {
@@ -590,7 +582,7 @@
 		fsl,data-mapping = "spwg";
 		fsl,data-width = <24>;
 		/* Single Channel Uses LVDS1 Channels */
-		status = "okay";
+		status = "disabled";
 		display-timings {
 			native-mode = <&timing1>;
 			timing1: AUO-G101STN01 {
