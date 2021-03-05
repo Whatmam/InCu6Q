@@ -5,6 +5,8 @@ SUBLEVEL = 35
 EXTRAVERSION =
 NAME = "People's Front"
 
+ARCH		=arm
+CROSS_COMPILE	=../Toolchain/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README
@@ -323,10 +325,6 @@ include scripts/subarch.include
 # Architecture as present in compile.h
 UTS_MACHINE 	:= $(ARCH)
 SRCARCH 	:= $(ARCH)
-
-
-ARCH		=arm
-CROSS_COMPILE	=../Toolchain/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-
 
 
 
