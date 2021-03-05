@@ -56,30 +56,43 @@
 	};
 
 	sound {
-		compatible = "fsl,imx6q-sabresd-wm8962",
-			   "fsl,imx-audio-wm8962";
-		model = "wm8962-audio";
+		compatible = "fsl,imx6q-hybus-wm8960",
+			"fsl,imx-audio-wm8960"; 
+		model = "wm8960-audio";
 		cpu-dai = <&ssi2>;
 		audio-codec = <&codec>;
 		asrc-controller = <&asrc>;
-		audio-routing =
-			"Headphone Jack", "HPOUTL",
-			"Headphone Jack", "HPOUTR",
-			"Ext Spk", "SPKOUTL",
-			"Ext Spk", "SPKOUTR",
-			"AMIC", "MICBIAS",
-			"IN3R", "AMIC",
-			"DMIC", "MICBIAS",
-			"DMICDAT", "DMIC",
-			"CPU-Playback", "ASRC-Playback",
-			"Playback", "CPU-Playback",
-			"ASRC-Capture", "CPU-Capture",
-			"CPU-Capture", "Capture";
-		mux-int-port = <2>;
-		mux-ext-port = <3>;
 		codec-master;
-		hp-det-gpios = <&gpio7 8 1>;
-		mic-det-gpios = <&gpio1 9 1>;
+		//gpr = <&gpr>;
+		   /*
+			* hp-det = <hp-det-pin hp-det-polarity>;
+			* hp-det-pin: JD1 JD2  or JD3
+			* hp-det-polarity = 0: hp detect high for headphone
+			* hp-det-polarity = 1: hp detect high for speaker
+			*/
+			audio-routing =
+			/*
+				"Headphone Jack", "HP_L",
+				"Headphone Jack", "HP_R",
+			*/
+				"Ext Spk", "SPK_LP",
+				"Ext Spk", "SPK_LN",
+				"Ext Spk", "SPK_RP",
+				"Ext Spk", "SPK_RN",
+		/*
+				"LINPUT2", "Mic Jack",
+				"LINPUT3", "Mic Jack",
+				"RINPUT1", "Main MIC",
+				"RINPUT2", "Main MIC",
+				"Mic Jack", "MICB",
+				"Main MIC", "MICB",
+		*/
+				"Playback", "CPU-Playback",
+				"CPU-Playback", "ASRC-Playback",
+				"ASRC-Capture", "CPU-Capture",
+				"CPU-Capture", "Capture";
+			mux-int-port = <1>;
+			mux-ext-port = <4>;
 	};
 
 	mxcfb1: fb@0 {
@@ -162,19 +175,14 @@
 
 	/* Codec & ADC */
 
-	codec: wm8962@1a {
-		compatible = "wlf,wm8962";
+	codec: wm8960@1a {
+		compatible = "wlf,wm8960";
 		reg = <0x1a>;
 		clocks = <&clks IMX6QDL_CLK_CKO>;
-		gpio-cfg = <
-			0x0000 /* 0:Default */
-			0x0000 /* 1:Default */
-			0x0013 /* 2:FN_DMICCLK */
-			0x0000 /* 3:Default */
-			0x8014 /* 4:FN_DMICCDAT */
-			0x0000 /* 5:Default */
-		>;
-		amic-mono;
+		clock-names = "mclk";
+		clock-frequency = <12000000>;
+		wlf,shared-lrclk;
+		status = "okay";
 	};
 };
 
@@ -338,10 +346,11 @@
 
 		pinctrl_audmux: audmuxgrp {
 			fsl,pins = <
-				MX6QDL_PAD_CSI0_DAT7__AUD3_RXD		0x130b0
-				MX6QDL_PAD_CSI0_DAT4__AUD3_TXC		0x130b0
-				MX6QDL_PAD_CSI0_DAT5__AUD3_TXD		0x110b0
-				MX6QDL_PAD_CSI0_DAT6__AUD3_TXFS		0x130b0
+				MX6QDL_PAD_SD2_DAT3__AUD4_TXC        0x130b0
+				MX6QDL_PAD_SD2_DAT2__AUD4_TXD        0x130b0
+                MX6QDL_PAD_SD2_DAT1__AUD4_TXFS       0x130b0
+                MX6QDL_PAD_SD2_DAT0__AUD4_RXD        0x130b0
+           		MX6QDL_PAD_GPIO_0__CCM_CLKO1         0x030b0
 			>;
 		};
 
