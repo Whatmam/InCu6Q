@@ -1601,7 +1601,7 @@ static struct platform_driver gpu_driver = {
     }
 };
 
-static int __init gpu_init(void)
+static int gpu_init(void)
 {
     int ret = 0;
 
@@ -1627,7 +1627,7 @@ static int __init gpu_init(void)
     return 0;
 }
 
-static void __exit gpu_exit(void)
+static void gpu_exit(void)
 {
     platform_driver_unregister(&gpu_driver);
 
