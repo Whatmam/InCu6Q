@@ -96,7 +96,7 @@
 		compatible = "fsl,mxc_sdc_fb";
 		disp_dev = "lcd";
 		interface_pix_fmt = "RGB24";
-		default_bpp = <24>;
+		default_bpp = <32>;
 		int_clk = <0>;
 		late_init = <0>;
 		status = "disabled";
@@ -106,7 +106,7 @@
 		compatible = "fsl,mxc_sdc_fb";
 		disp_dev = "ldb";
 		interface_pix_fmt = "RGB666";
-		default_bpp = <16>;
+		default_bpp = <32>;
 		int_clk = <0>;
 		late_init = <0>;
 		status = "disabled";
@@ -116,7 +116,7 @@
 		compatible = "fsl,lcd";
 		ipu_id = <0>;
 		disp_id = <0>;
-		default_ifmt = "RGB565";
+		default_ifmt = "RGB24";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_ipu1>;
 		status = "okay";
@@ -562,46 +562,47 @@
 
 &ldb {
 	status = "okay";
-
+	/* LVDS Dual Channel Configure  -> If You Need, Activate Mode*/
+	//split-mode;
+	//dual-mode;
 	lvds-channel@0 {
 		fsl,data-mapping = "spwg";
 		fsl,data-width = <18>;
-		status = "okay";
+		/* Single Channel Uses LVDS1 Channels */
+		status = "disabled";
 
 		display-timings {
 			native-mode = <&timing0>;
-			timing0: hsd100pxn1 {
-				clock-frequency = <65000000>;
+			timing0: AUO-G101STN01 {
+				clock-frequency = <51200000>;
 				hactive = <1024>;
-				vactive = <768>;
+				vactive = <600>;
 				hback-porch = <220>;
 				hfront-porch = <40>;
-				vback-porch = <21>;
+				vback-porch = <20>;
 				vfront-porch = <7>;
 				hsync-len = <60>;
-				vsync-len = <10>;
+				vsync-len = <8>;
 			};
 		};
 	};
-
 	lvds-channel@1 {
 		fsl,data-mapping = "spwg";
-		fsl,data-width = <18>;
-		primary;
+		fsl,data-width = <24>;
+		/* Single Channel Uses LVDS1 Channels */
 		status = "okay";
-
 		display-timings {
 			native-mode = <&timing1>;
-			timing1: hsd100pxn1 {
-				clock-frequency = <65000000>;
+			timing1: AUO-G101STN01 {
+				clock-frequency = <51200000>;
 				hactive = <1024>;
-				vactive = <768>;
+				vactive = <600>;
 				hback-porch = <220>;
 				hfront-porch = <40>;
-				vback-porch = <21>;
+				vback-porch = <20>;
 				vfront-porch = <7>;
 				hsync-len = <60>;
-				vsync-len = <10>;
+				vsync-len = <8>;
 			};
 		};
 	};
