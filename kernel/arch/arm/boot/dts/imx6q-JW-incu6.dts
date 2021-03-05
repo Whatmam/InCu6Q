@@ -26,7 +26,3 @@
 &mxcfb1 {
 	status = "okay";
 };
-
-&mxcfb2 {
-	status = "okay";
-};
