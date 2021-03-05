@@ -203,14 +203,16 @@
 
 	/* TSP & PMIC */
 
-	egalax_ts@4 {
-		compatible = "eeti,egalax_ts";
-		reg = <0x4>;
+	/* touchscreen */
+	tsc2003@48 {
+		compatible = "ti,tsc2007";
+		reg = <0x48>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_i2c3_egalax_int>;
-		interrupt-parent = <&gpio6>;
-		interrupts = <7 2>;
-		wakeup-gpios = <&gpio6 7 0>;
+		pinctrl-0 = <&pinctrl_i2c3_tsc_int>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <8 IRQ_TYPE_EDGE_FALLING>; /* TSP_nINT */
+		gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
+		ti,x-plate-ohms = <600>;
 	};
 
 	pmic: pfuze100@8 {
@@ -345,21 +347,21 @@
 				/* USBH1 PWR */
 				MX6QDL_PAD_GPIO_4__GPIO1_IO04	0x1b0b1
 				/* TODO USBH1 OVC */
+				MX6QDL_PAD_GPIO_3__GPIO1_IO03	0x1b0b1
 				/* USBH3 PWR */
 				MX6QDL_PAD_SD4_DAT6__GPIO2_IO14 0x1b0b1
 				/* TODO USBH3 OVC */
+				MX6QDL_PAD_SD4_DAT7__GPIO2_IO15 0x1b0b1
+				/* SPK_PWR_EN */
+				MX6QDL_PAD_SD4_DAT4__GPIO2_IO12 	0x1b0b1
+				/* RTC_nINT1 */
+				MX6QDL_PAD_SD4_DAT5__GPIO2_IO13 	0x1b0b1
 				/* LED_CTL 1-3*/
 				MX6QDL_PAD_KEY_COL4__GPIO4_IO14		0x1b0b0
 				MX6QDL_PAD_KEY_ROW4__GPIO4_IO15		0x1b0b0
 				MX6QDL_PAD_DI0_PIN4__GPIO4_IO20		0x1b0b0
 				/* BT_Check */
 				MX6QDL_PAD_NANDF_CS2__GPIO6_IO15	0x1b0b0
-				/* TSP_nINT */
-				MX6QDL_PAD_SD4_DAT0__GPIO2_IO08 	0x1b0b1
-				/* SPK_PWR_EN */
-				MX6QDL_PAD_SD4_DAT4__GPIO2_IO12 	0x1b0b1
-				/* RTC_nINT */
-				MX6QDL_PAD_SD4_DAT5__GPIO2_IO13 	0x1b0b1
 			>;
 		};
 
@@ -373,15 +375,17 @@
 			>;
 		};
 
-		pinctrl_i2c3_pmic_int: pimc_i2c3_intgrp {
+		pinctrl_i2c3_tsc_int: tsc2003_i2c3_intgrp {
 			fsl,pins = <
-				MX6QDL_PAD_GPIO_18__GPIO7_IO13	0x80000000
+				/* TSP_nINT */
+				MX6QDL_PAD_SD4_DAT0__GPIO2_IO08 	0x1b0b1
 			>;
 		};
 
-		pinctrl_i2c3_egalax_int: egalax_i2c3_intgrp {
+		pinctrl_i2c3_pmic_int: pimc_i2c3_intgrp {
 			fsl,pins = <
-				MX6QDL_PAD_NANDF_CLE__GPIO6_IO07 0x80000000
+				/* PMIC_nINT */
+				MX6QDL_PAD_GPIO_18__GPIO7_IO13	0x80000000
 			>;
 		};
 
