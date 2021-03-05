@@ -193,6 +193,12 @@
 		wlf,shared-lrclk;
 		status = "okay";
 	};
+
+	adc: adc081c@50 {
+		compatible = "ti,adc081c";
+		reg = <0x50>;
+		status = "okay";
+	};
 };
 
 &i2c3 {
