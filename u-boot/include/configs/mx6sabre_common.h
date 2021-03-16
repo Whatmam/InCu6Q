@@ -183,7 +183,7 @@
 	"epdc_waveform=epdc_splash.bin\0" \
 	"script=boot.scr\0" \
 	"image=zImage\0" \
-	"fdt_file=imx6dl-JW-rgb.dtb\0" \
+	"fdt_file=imx6q-JW-rgb.dtb\0" \
 	"fdt_addr=0x18000000\0" \
 	"tee_addr=0x20000000\0" \
 	"tee_file=undefined\0" \
