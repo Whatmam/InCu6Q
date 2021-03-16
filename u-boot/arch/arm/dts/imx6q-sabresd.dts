@@ -9,7 +9,7 @@
 #include "imx6qdl-sabresd.dtsi"
 
 / {
-	model = "Freescale i.MX6 Quad SABRE Smart Device Board";
+	model = "Freescale i.MX6 Quad Whatmam JW-Bio incu6q Board";
 	compatible = "fsl,imx6q-sabresd", "fsl,imx6q";
 };
 

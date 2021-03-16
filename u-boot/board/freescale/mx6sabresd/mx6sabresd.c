@@ -81,6 +81,8 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define KEY_VOL_UP	IMX_GPIO_NR(1, 4)
 
+#define LCD_EN	IMX_GPIO_NR(2, 9)
+
 int dram_init(void)
 {
 	gd->ram_size = imx_ddr_size();
@@ -92,6 +94,7 @@ static iomux_v3_cfg_t const uart1_pads[] = {
 	//IOMUX_PADS(PAD_CSI0_DAT11__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT6__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT7__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL)),
+	IOMUX_PADS(PAD_SD4_DAT1__GPIO2_IO09	| MUX_PAD_CTRL(UART_PAD_CTRL)),
 };
 
 static iomux_v3_cfg_t const enet_pads[] = {
@@ -799,6 +802,9 @@ int board_init(void)
 {
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
+	
+	gpio_request(LCD_EN, "LCD Enable");
+	gpio_direction_output(LCD_EN, 0);
 
 #if defined(CONFIG_DM_REGULATOR)
 	regulators_enable_boot_on(false);
@@ -1230,7 +1236,7 @@ int board_late_init(void)
 
 int checkboard(void)
 {
-	puts("Board: MX6-SabreSD\n");
+	puts("Board: MX6Q-Whatmam-InCu6\n");
 	return 0;
 }
 
