@@ -1053,6 +1053,15 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
 
 	/*Set enet_ref clock to 125M to supply for RGMII tx_clk */
 	clk_set_rate(clk[IMX6QDL_CLK_ENET_REF], 125000000);
+	
+	/* Whatmam */
+	np = of_find_compatible_node(NULL, NULL, "fsl,imx6q-fec");
+	if (np) {
+		u32 clock_frequency;
+		int ret;
+		ret = of_property_read_u32(np, "ref-clock", &clock_frequency);
+		clk_set_rate(clk[IMX6QDL_CLK_ENET_REF], clock_frequency);
+	}
 
 #ifdef CONFIG_MX6_VPU_352M
 	/*

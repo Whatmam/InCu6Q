@@ -33,8 +33,9 @@
 			regulator-name = "usb_h1_vbus";
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
-			gpio = <&gpio1 4 1>;
-			enable-active-high;
+			gpio = <&gpio1 4 0>;
+			enable-active-low;
+
             regulator-always-on;
 		};
 
@@ -44,8 +45,8 @@
 			regulator-name = "usb_h3_vbus";
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
-			gpio = <&gpio2 14 1>;
-			enable-active-high;
+			gpio = <&gpio2 14 0>;
+			enable-active-low;
             regulator-always-on;
 		};
 	};
@@ -217,6 +218,7 @@
 		interrupts = <8 IRQ_TYPE_EDGE_FALLING>; /* TSP_nINT */
 		gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
 		ti,x-plate-ohms = <600>;
+		status = "okay";
 	};
 
 	pmic: pfuze100@8 {
@@ -406,10 +408,10 @@
 				MX6QDL_PAD_GPIO_16__ENET_REF_CLK	0x4001b0a8
 
 				/* LAN8720 PHY nINT */
-				MX6QDL_PAD_RGMII_RD1__GPIO6_IO27	0x1b0b0
+				MX6QDL_PAD_RGMII_RD1__GPIO6_IO27	0x1b0b1
 
 				/* LAN8720 PHY Reset */
-       				MX6QDL_PAD_RGMII_RD2__GPIO6_IO28	0x1b0b0
+       				MX6QDL_PAD_RGMII_RD2__GPIO6_IO28	0x1b0b1
 
 			>;
 		};
