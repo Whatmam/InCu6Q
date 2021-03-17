@@ -9,8 +9,12 @@
 #include "imx6qdl-JW-incu6.dtsi"
 
 / {
-	model = "Freescale i.MX6 Quad SABRE Smart Device Board";
+	model = "Freescale i.MX6 Quad Whatmam Smart Device Board";
 	compatible = "fsl,imx6q-sabresd", "fsl,imx6q";
+
+	lcd: lcd@0 {
+        status = "okay";
+    };
 };
 
 &ldb {
@@ -23,6 +27,18 @@
 	};
 };
 
+&lcd {
+    status = "okay";
+};
+
 &mxcfb1 {
 	status = "okay";
+	disp_dev = "lcd";
+    mode_str ="AT070TN94-WVGA";
+    default_ifmt = "RGB24";
+    status = "okay";
+};
+
+&mxcfb2 {
+    status = "disabled";
 };

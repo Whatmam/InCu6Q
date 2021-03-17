@@ -10,6 +10,7 @@
 / {
 	aliases {
 		mxcfb0 = &mxcfb1;
+		mxcfb1 = &mxcfb2;
 	};
 
 	chosen {
@@ -106,17 +107,20 @@
 
 	mxcfb1: fb@0 {
 		compatible = "fsl,mxc_sdc_fb";
-		//disp_dev = "lcd";
-		//mo{
-		//mode_str ="AT070TN83-WVGA";
-		//interface_pix_fmt = "RGB24";
-		//disp_dev = "ldb";
-		//interface_pix_fmt = "RGB666";
+		interface_pix_fmt = "RGB24";
 		default_bpp = <32>;
 		int_clk = <0>;
 		late_init = <0>;
 		status = "disabled";
 	};
+	mxcfb2: fb@1 {
+        compatible = "fsl,mxc_sdc_fb";
+        interface_pix_fmt = "RGB24";
+        default_bpp = <32>;
+        int_clk = <0>;
+        late_init = <0>;
+        status = "disabled";
+    };
 
 	lcd@0 {
 		compatible = "fsl,lcd";
@@ -125,7 +129,6 @@
 		default_ifmt = "RGB24";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_ipu1>;
-		status = "disabled";
 	};
 
 	backlight {
@@ -156,18 +159,13 @@
 	pinctrl-0 = <&pinctrl_enet>;
 	phy-mode = "rmii";
 	phy-reset-gpios = <&gpio6 28 GPIO_ACTIVE_LOW>;
+	ref-clock = <50000000>;
 	fsl,magic-packet;
 	status = "okay";
 };
 
 &gpc {
 	fsl,ldo-bypass = <0>;
-};
-
-&dcic1 {
-	dcic_id = <0>;
-	dcic_mux = "dcic-hdmi";
-	status = "okay";
 };
 
 &dcic2 {
@@ -347,7 +345,7 @@
 		pinctrl_hog: hoggrp {
 			fsl,pins = <
 				/* LCD Driver Enable */
-				MX6QDL_PAD_SD4_DAT1__GPIO2_IO09		0x1b0b1
+				//MX6QDL_PAD_SD4_DAT1__GPIO2_IO09		0x1a0b1
 				/* Status LED */
 				MX6QDL_PAD_RGMII_RD3__GPIO6_IO29	0x1b0b1
 				/* USBH1 PWR */
@@ -501,7 +499,7 @@
 		pinctrl_pwm3: pwm3grp {
 			fsl,pins = <
 				/*MX6QDL_PAD_SD1_DAT3__PWM1_OUT		0x1b0b1*/
-				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
+				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1a0b1
 			>;
 		};
 

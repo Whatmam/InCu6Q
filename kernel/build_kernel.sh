@@ -11,6 +11,7 @@ rm ./*.dtb
 make imx_JW_defconfig
 make zImage -j9
 make dtbs
+make modules
 make modules_install
 cp -vrfp arch/arm/boot/zImage ./zImage
 cp -vrfp arch/arm/boot/dts/imx6dl-JW-incu6.dtb ./imx6dl-JW-rgb.dtb
