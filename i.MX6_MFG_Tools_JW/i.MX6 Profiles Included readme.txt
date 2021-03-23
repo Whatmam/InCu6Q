@@ -1,7 +1,0 @@
-Profile Name:MX6S Linux Update
-Board Name: Hybus-iMX6S_Linux
-Description:Download the u-boot, kernel and rootfs to the SD Card
-
-Profile Name:MX6S Kernel Update
-Board Name: Hybus-iMX6S_Kernel
-Description:Download the kernel to the SD Card

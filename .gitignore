@@ -1,1 +1,9 @@
 Toolchain/
+u-boot
+.vscode/settings.json
+.vscode*
+**/.vscode/
+kernel
+Image/*
+i.MX6_MFG_Tools_JW/Profiles/Linux/OS Firmware/files/*
+i.MX6_MFG_Tools_JW/MfgTool.log
