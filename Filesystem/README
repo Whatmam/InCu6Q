@@ -1,0 +1,19 @@
+.
+├── build_Filesystem.sh				: buildroot Script
+├── buildroot-2020.02.10.tar.gz			: buildroot
+├── buildroot_configs				: buildroot defconfig
+│   └── freescale_imx6dlsabresd_defconfig
+├── copy_files.sh				: Rootfs Script
+├── QT5_Config					: buildroot QT5.12.3 configure
+│   ├── package
+│   └── README
+├── rootfs_files
+│   ├── autologin
+│   ├── automount
+│   ├── copy_files.sh
+│   ├── etc
+│   ├── lib
+│   ├── root
+│   ├── rootfs_base
+│   └── sbin
+└── rootfs_output				: Rootfs output Image

@@ -4,31 +4,16 @@ export ARCH=arm
 export CROSS_COMPILE=$PWD/../Toolchain/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf
 
 make clean
-make freescale_imx6dlsabresd_defconfig
+make imx6_incu6_defconfig
 make all -j12
 
-
-
-#========================== Copy Files =======================#
-cd $PWD/rootfs_files
-
-cp -vrfp ../output/images/rootfs.tar.bz2 rootfs_output/
-cd rootfs_output
-tar -xvf rootfs.tar.bz2
-rm rootfs.tar.bz2
-
-
-
-#autologin
-cp ../autologin/autologin sbin/
-cp ../autologin/inittab etc/
-
-#automount
-#cp ../automount/S10mdev etc/init.d/
-#cp ../automount/mdev.conf etc/
-#cp ../automount/automount.sh etc/
-
-
-
-tar -cjvf rootfs.tar.bz2 *
-find . ! -name rootfs.tar.bz2 -delete
+# if [ ! -e rootfs_files ]; then
+#         echo "Not Find rootfs_files ... !"
+# else
+# cd $PWD/rootfs_files
+# 		if [ -e copy_files.sh ]; then
+# 			./copy_files.sh 
+# 		else
+# 			echo "Not Find copy_files.sh ... !"
+# 		fi
+# fi
