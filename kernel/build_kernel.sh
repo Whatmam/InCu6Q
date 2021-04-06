@@ -1,6 +1,6 @@
 #!/bin/sh
 export KERNEL_SRC=$PWD
-export INSTALL_MOD_PATH=../Image/module_inst
+export INSTALL_MOD_PATH=../Filesystem/rootfs_files
 if [ ! -e $INSTALL_MODE_PATH ]; then
 	mkdir -p $INSTALL_MODE_PATH
 fi
@@ -21,6 +21,6 @@ cp -vrfp *.dtb ../i.MX6_MFG_Tools_JW/Profiles/Linux/OS\ Firmware/files/
 
 export ARCH=arm
 export CROSS_COMPILE='../Toolchain/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-'
-cd kernel-module-imx-gpu-viv
-make
-make modules_install
+#cd kernel-module-imx-gpu-viv
+#make
+#make modules_install
