@@ -1,0 +1,617 @@
+#!/bin/bash
+rm -rf /tmp/menu.*
+MAIN_INPUT=/tmp/menu.sh.$$
+INPUT=/tmp/menu.sh".sub"
+: ${DIALOG_OK=0}
+: ${DIALOG_CANCEL=1}
+: ${DIALOG_HELP=2}
+: ${DIALOG_EXTRA=3}
+: ${DIALOG_ITEM_HELP=4}
+: ${DIALOG_ESC=255}
+main_item_array=("Total Test" "Unit Test" "Log Viewer")
+unit_item_array=("Ethernet Ping" "Ethernet Throughput" "Audio" "Buzzer" "RTC" "UART" "USB" "SD Slot" "LCD" "Touch Test")
+menu_explain="You can use the UP/DOWN arrow keys, the first letter of the choice as a hot key, or the number keys 1-9 to choose an option.\n\
+Choose the TASK(Press OK or Space Bar)"
+backtitle="CP-19 CUI Test Program"
+test_list=""
+result_string=""
+
+audio_list=("16bit 8Khz Mono 1Khz Sine Wav" "16bit 8Khz Stereo 1Khz Sine Wav" "16bit 11Khz Mono 1Khz Sine Wav" \
+            "16bit 11Khz Stereo 1Khz Sine Wav" "16bit 22Khz Mono 1Khz Sine Wav" "16bit 22Khz Stereo 1Khz Sine Wav" \
+            "16bit 44.1Khz Mono 1Khz Sine Wav" "16bit 44.1Khz Stereo 1Khz Sine Wav" "16bit 48Khz Mono 1Khz Sine Wav" \
+            "16bit 48Khz Stereo 1Khz Sine Wav")
+
+### Text Box sample - show file test.txt
+function log_viewer {
+    local filename="/tmp/test.log"
+    if [ -e $filename ]; then
+        dialog --backtitle "${backtitle} use [up] [down] to scroll"\
+               --begin 2 0 --title " viewing File: $filename "\
+               --textbox $filename 18 100
+    else
+        dialog --msgbox "*** ERROR ***\n$filename does not exist" 6 42
+    fi
+}
+
+function exit_yesno() {
+    local title=$1
+    dialog --backtitle "${backtitle}" --title "${1}" --yesno "Do you wanna quit?" 10 30
+    return $?
+}
+
+function log_time_stamp() {
+    echo "====================================================" >> /tmp/test.log
+    date >> /tmp/test.log
+    echo "====================================================" >> /tmp/test.log
+}
+
+function total_test_part_func() {
+    local pct=$1
+    if [[ $test_list == *"Ethernet Ping"* ]]; then
+        result_string="${result_string}""Ethernet Ping Test...."
+        (
+            echo "XXX"
+            echo $result_string
+            echo "XXX"
+            echo "$pct"
+        ) | dialog --backtitle "${backtitle}" --title "Total Test" --gauge "Wait please..." 18 100 0
+
+        test_list=`echo ${test_list} | sed -e "s/\"Ethernet\ Ping\"//g"`
+        log_time_stamp
+        ./ethernet_test ping 2&>>/tmp/test.log
+        if [ $? -eq 0 ]; then 
+            result_string="${result_string}""OK\n"
+        else
+            result_string="${result_string}""Fail\n"
+        fi
+        return;
+    fi
+
+    if [[ $test_list == *"Ethernet Throughput"* ]]; then
+        result_string="${result_string}""Ethernet Throughput Test...."
+        (
+            echo "XXX"
+            echo $result_string
+            echo "XXX"
+            echo "$pct"
+        ) | dialog --backtitle "${backtitle}" --begin 2 0 --title "Total Test" --gauge "Wait please..." 18 100 0
+
+        test_list=`echo ${test_list} | sed -e "s/\"Ethernet\ Throughput\"//g"`
+        log_time_stamp
+        ./ethernet_test iperf 2&>>/tmp/test.log
+        if [ $? -eq 0 ]; then 
+            result_string="${result_string}""OK\n"
+        else
+            result_string="${result_string}""Fail\n"
+        fi
+        return;
+    fi
+
+    if [[ $test_list == *"Audio"* ]]; then
+        result_string="${result_string}""Audio Test...."
+        (
+            echo "XXX"
+            echo $result_string
+            echo "XXX"
+            echo "$pct"
+        ) | dialog --backtitle "${backtitle}" --title "Total Test" --gauge "Wait please..." 18 100 0
+
+        test_list=`echo ${test_list} | sed -e "s/Audio//g"`
+        log_time_stamp
+	aplay 16khz_sin_1000Hz_-3dBFS_3s.wav 2>>/tmp/test.log
+        dialog --backtitle "${backtitle}" --begin 2 0 --title "Audio Test" --yesno "Audio Sine Tone Pass?" 18 100
+        if [ $? -eq 0 ]; then 
+            result_string="${result_string}""OK\n"
+        else
+            result_string="${result_string}""Fail\n"
+        fi
+        return;
+    fi
+
+    if [[ $test_list == *"Buzzer"* ]]; then
+        result_string="${result_string}""Buzzer Test...."
+        (
+            echo "XXX"
+            echo $result_string
+            echo "XXX"
+            echo "$pct"
+        ) | dialog --backtitle "${backtitle}" --begin 2 0 --title "Total Test" --gauge "Wait please..." 18 100 0
+
+        test_list=`echo ${test_list} | sed -e "s/Buzzer//g"`
+        log_time_stamp
+        echo -e "Buzzer test" >> /tmp/test.log
+        ./buzzer_test 3000 60 >> /tmp/test.log
+        dialog --backtitle "${backtitle}" --title "Buzzer Test" --yesno "Buzzer Tone Pass?" 18 100
+        if [ $? -eq 0 ]; then 
+            echo "Buzzer Pass" >> /tmp/test.log
+            result_string="${result_string}""OK\n"
+        else
+            echo "Buzzer Fail" >> /tmp/test.log
+            result_string="${result_string}""Fail\n"
+        fi
+        return;
+    fi
+
+    if [[ $test_list == *"RTC"* ]]; then
+        result_string="${result_string}""RTC Test...."
+        (
+            echo "XXX"
+            echo $result_string
+            echo "XXX"
+            echo "$pct"
+        ) | dialog --backtitle "${backtitle}" --begin 2 0 --title "Total Test" --gauge "Wait please..." 18 100 0
+        test_list=`echo ${test_list} | sed -e "s/RTC//g"`
+        log_time_stamp
+        ./rtc_test.sh >> /tmp/test.log
+        if [ $? -eq 0 ]; then 
+            result_string="${result_string}""OK\n"
+        else
+            result_string="${result_string}""Fail\n"
+        fi
+        return
+    fi
+
+    if [[ $test_list == *"UART"* ]]; then
+        result_string="${result_string}""UART Test...."
+        (
+            echo "XXXUART"
+            echo $result_string
+            echo "XXX"
+            echo "$pct"
+        ) | dialog --backtitle "${backtitle}" --begin 2 0 --title "Total Test" --gauge "Wait please..." 18 100 0
+        test_list=`echo ${test_list} | sed -e "s/UART//g"`
+        log_time_stamp
+        ./uart_total.sh >> /tmp/test.log
+        if [ $? -eq 0 ]; then 
+            result_string="${result_string}""OK\n"
+        else
+            result_string="${result_string}""Fail\n"
+        fi
+        return
+    fi
+
+    if [[ $test_list == *"USB"* ]]; then
+        result_string="${result_string}""USB Test...."
+        (
+            echo "XXX"
+            echo $result_string
+            echo "XXX"
+            echo "$pct"
+        ) | dialog --backtitle "${backtitle}" --begin 2 0 --title "Total Test" --gauge "Wait please..." 18 100 0
+ 
+        test_list=`echo ${test_list} | sed -e "s/USB//g"`
+        log_time_stamp
+        ./usb_test.sh >> /tmp/test.log
+        if [ $? -eq 0 ]; then 
+            result_string="${result_string}""OK\n"
+        else
+            result_string="${result_string}""Fail\n"
+        fi
+        return
+    fi
+
+    if [[ $test_list == *"SD Slot"* ]]; then
+        result_string="${result_string}""SD Slot Test...."
+        (
+            echo "XXX"
+            echo $result_string
+            echo "XXX"
+            echo "$pct"
+        ) | dialog --backtitle "${backtitle}" --begin 2 0 --title "Total Test" --gauge "Wait please..." 18 100 0
+ 
+        test_list=`echo ${test_list} | sed -e "s/\"SD\ Slot\"//g"`
+        log_time_stamp
+        ./sd_test.sh >> /tmp/test.log
+        if [ $? -eq 0 ]; then 
+            result_string="${result_string}""OK\n"
+        else
+            result_string="${result_string}""Fail\n"
+        fi
+        return
+    fi
+
+    if [[ $test_list == *"LCD"* ]]; then
+        result_string="${result_string}""LCD Test...."
+
+        test_list=`echo ${test_list} | sed -e "s/LCD//g"`
+        log_time_stamp
+        ./lcd_test.sh >> /tmp/test.log 
+        dialog --backtitle "${backtitle}" --begin 2 0 --title "LCD Test" --yesno "LCD Test Pass?" 18 100
+        if [ $? -eq 0 ]; then 
+            result_string="${result_string}""OK\n"
+        else
+            result_string="${result_string}""Fail\n"
+        fi
+        return
+    fi
+
+    if [[ $test_list == *"Touch Test"* ]]; then
+        result_string="${result_string}""Touch Test Test...."
+
+        test_list=`echo ${test_list} | sed -e "s/\"Touch\ Test\"//g"`
+        log_time_stamp
+	./application_qt3 -qws 2>>/tmp/test.log &
+    	sleep 0.2
+    	killall application_qt3 2>>/tmp/test.log
+    	cat /dev/full > /dev/fb0 2>>/tmp/test.log
+    	ts_test 2&>>/tmp/test.log &
+        dialog --backtitle "${backtitle}" --begin 2 0 --title "Touch Test" --yesno "Touch Test Pass?" 18 100
+        if [ $? -eq 0 ]; then 
+            result_string="${result_string}""OK\n"
+        else
+            result_string="${result_string}""Fail\n"
+        fi
+    	killall ts_test 2>>/tmp/test.log
+        return
+    fi
+}
+
+function ethernet_ping_unit() {
+    local ip_addr="192.168.0.77"
+    local gw="192.168.0.1"
+    local target_addr="192.168.0.2"
+    user_record=$(
+    dialog                                      \
+    --backtitle "${backtitle}"      \
+    --title "Ping Test Setting"     \
+    --form "" 18 100 4               \
+"IP Address :"    1   1   "$ip_addr"     1   15  30  0   \
+"GateWay    :"    2   1   "$gw"          2   15  30  0   \
+"Target IP  :"    3   1   "$target_addr" 3   15  30  0   \
+3>&1 1>&2 2>&3 3>&- 
+    )
+
+    if [ $? -eq $DIALOG_CANCEL ];then
+        return;
+    fi
+
+    ip_addr=$(echo -e $user_record | sed 's/\ /\n/g' | sed -n 1p)
+    gw=$(echo -e $user_record | sed 's/\ /\n/g' | sed -n 2p)
+    target_addr=$(echo -e $user_record | sed 's/\ /\n/g' | sed -n 3p)
+    dialog --title "Ethernet Ping Test" --begin 0 0 --prgbox "./ethernet_test ping -i $ip_addr -g $gw -t $target_addr" "./ethernet_test ping -i $ip_addr -g $gw -t $target_addr" 20 100 
+}
+
+function ethernet_throughput_unit() {
+    local ip_addr="192.168.0.88"
+    local gw="192.168.0.1"
+    local target_addr="192.168.0.2"
+    user_record=$(
+    dialog                              \
+    --backtitle "${backtitle}"      \
+    --title "Throughput Test Setting"     \
+    --form "" 18 100 4               \
+"IP Address :"    1   1   "$ip_addr"     1   15  30  0   \
+"GateWay    :"    2   1   "$gw"         2   15  30  0   \
+"Target IP  :"    3   1   "$target_addr" 3   15  30  0   \
+3>&1 1>&2 2>&3 3>&- 
+    )
+
+    if [ $? -eq $DIALOG_CANCEL ];then
+        return;
+    fi
+
+    ip_addr=$(echo -e $user_record | sed 's/\ /\n/g' | sed -n 1p)
+    gw=$(echo -e $user_record | sed 's/\ /\n/g' | sed -n 2p)
+    target_addr=$(echo -e $user_record | sed 's/\ /\n/g' | sed -n 3p)
+    dialog --title "Ethernet Throughput Test" --begin 0 0 --prgbox "./ethernet_test iperf -i $ip_addr -g $gw -t $target_addr" "./ethernet_test iperf -i $ip_addr -g $gw -t $target_addr" 20 100 
+}
+
+function auido_sub_unit()
+{
+    local play_list=$1
+
+    case $play_list in
+        ${audio_list[0]})
+            dialog --title "Audio Unit Test" --begin 0 0 --prgbox "Audio Test Start!" "aplay sin_1000Hz_-3dBFS_10s_8k_mono.wav" 20 100 ;;
+        ${audio_list[1]})
+            dialog --title "Audio Unit Test" --begin 0 0 --prgbox "Audio Test Start!" "aplay sin_1000Hz_-3dBFS_10s_8k.wav" 20 100 ;;
+        ${audio_list[2]})
+            dialog --title "Audio Unit Test" --begin 0 0 --prgbox "Audio Test Start!" "aplay sin_1000Hz_-3dBFS_10s_11k_mono.wav" 20 100 ;;
+        ${audio_list[3]})
+            dialog --title "Audio Unit Test" --begin 0 0 --prgbox "Audio Test Start!" "aplay sin_1000Hz_-3dBFS_10s_11k.wav" 20 100 ;;
+        ${audio_list[4]})
+            dialog --title "Audio Unit Test" --begin 0 0 --prgbox "Audio Test Start!" "aplay sin_1000Hz_-3dBFS_10s_22k_mono.wav" 20 100 ;;
+        ${audio_list[5]})
+            dialog --title "Audio Unit Test" --begin 0 0 --prgbox "Audio Test Start!" "aplay sin_1000Hz_-3dBFS_10s_22k.wav" 20 100 ;;
+        ${audio_list[6]})
+            dialog --title "Audio Unit Test" --begin 0 0 --prgbox "Audio Test Start!" "aplay sin_1000Hz_-3dBFS_10s_44k_mono.wav" 20 100 ;;
+        ${audio_list[7]})
+            dialog --title "Audio Unit Test" --begin 0 0 --prgbox "Audio Test Start!" "aplay sin_1000Hz_-3dBFS_10s_44k.wav" 20 100 ;;
+        ${audio_list[8]})
+            dialog --title "Audio Unit Test" --begin 0 0 --prgbox "Audio Test Start!" "aplay sin_1000Hz_-3dBFS_10s_48k_mono.wav" 20 100 ;;
+        ${audio_list[9]})
+            dialog --title "Audio Unit Test" --begin 0 0 --prgbox "Audio Test Start!" "aplay sin_1000Hz_-3dBFS_10s_48k.wav" 20 100 ;;
+    esac
+}
+
+function audio_unit() {
+    local result="./audio_list"
+    while :
+    do
+    dialog --title "Audio Test List" \
+    --backtitle "${backtitle}"      \
+    --radiolist "Audio List" 18 100 10 \
+"${audio_list[0]}" "" on \
+"${audio_list[1]}" "" off \
+"${audio_list[2]}" "" off \
+"${audio_list[3]}" "" off \
+"${audio_list[4]}" "" off \
+"${audio_list[5]}" "" off \
+"${audio_list[6]}" "" off \
+"${audio_list[7]}" "" off \
+"${audio_list[8]}" "" off \
+"${audio_list[9]}" "" off \
+2>$result
+    return_value=$?
+    local menuitem=$(<"${result}")
+
+    case $return_value in
+        $DIALOG_OK)
+            auido_sub_unit "${menuitem}";;
+        $DIALOG_CANCEL)
+            break;;
+        $DIALOG_HELP)
+            echo "Help!!"; continue;;
+    esac
+    done
+    rm -rf audio_list
+}
+
+function buzzer_unit() {
+    local msec="3000"
+    local hz="60"
+    user_record=$(
+    dialog                                      \
+    --backtitle "${backtitle}"      \
+    --title "Buzzer Test Setting"     \
+    --form "" 18 100 4               \
+    "Buzzer on (msec) :"    1   1   "$msec"    1   20  30  0   \
+    "CW HZ (100 - 1k) :"    2   1   "$hz"      2   20  30  0   \
+    3>&1 1>&2 2>&3 3>&- 
+    )
+
+    if [ $? -eq $DIALOG_CANCEL ];then
+        return;
+    fi
+
+
+
+    msec=$(echo $user_record | sed 's/\ /\n/g' | sed -n 1p)
+    hz=$(echo $user_record | sed 's/\ /\n/g' | sed -n 2p)
+
+    dialog --title "Buzzer Unit Test" --begin 0 0 --prgbox "Buzzer Test Start!" "./buzzer_test $msec $hz" 20 100 
+}
+
+function rtc_unit() {
+    dialog --title "RTC Unit Test" --begin 0 0 --prgbox "RTC Test Start!" "./rtc_test.sh" 20 100 
+    sleep 1
+    dialog --title "DATE & TIME" \
+    --backtitle "${backtitle}"      \
+    --msgbox "\n Today's Date: `date +"%d-%m-%Y"` \n\n\
+Today's Time: `date +"%r %Z"`" 18 100 
+}
+
+function uart_unit() {
+    local tty_num="1"
+    local baud="115200"
+    user_record=$(
+    dialog                                      \
+    --backtitle "${backtitle}"      \
+    --title "Buzzer Test Setting"     \
+    --form "" 18 100 4               \
+    "ttymxc num(1 3 4):"    1   1   "$tty_num"   1   20  30  0   \
+    "Baudrate         :"    2   1   "$baud"      2   20  30  0   \
+    3>&1 1>&2 2>&3 3>&- 
+    )
+
+    if [ $? -eq $DIALOG_CANCEL ];then
+        return;
+    fi
+
+
+
+    tty_num=$(echo $user_record | sed 's/\ /\n/g' | sed -n 1p)
+    baud=$(echo $user_record | sed 's/\ /\n/g' | sed -n 2p)
+
+    dialog --title "UART Unit Test" --begin 0 0 --prgbox "Uart Test : /dev/ttymxc${tty_num}" "./uart_test $tty_num $baud" 20 100 
+}
+
+function usb_unit() {
+    dialog --title "USB Unit Test" --begin 0 0 --prgbox "" "./usb_test.sh" 20 100
+}
+
+function sd_unit() {
+    dialog --title "SD Card Unit Test" --begin 0 0 --prgbox "" "./sd_test.sh" 20 100 
+}
+
+function lcd_unit() {
+    ./lcd_test.sh 2>>/tmp/test.log 
+    dialog --backtitle "${backtitle}" --title "LCD Test" --yesno "LCD Test Pass?" 18 100
+    if [ $? -eq 0 ]; then 
+        result_string="${result_string}""OK\n"
+    else
+        result_string="${result_string}""Fail\n"
+    fi
+}
+
+function touch_unit() {
+    ./application_qt3 -qws 2>>/tmp/test.log &
+    sleep 0.2
+    killall application_qt3 2>>/tmp/test.log
+    cat /dev/full > /dev/fb0 2>>/tmp/test.log
+    ts_test 2&>>/tmp/test.log &
+    dialog --backtitle "${backtitle}" --title "Touch Test" --yesno "Touch Test Pass?" 18 100
+    if [ $? -eq 0 ]; then 
+        result_string="${result_string}""OK\n"
+    else
+        result_string="${result_string}""Fail\n"
+    fi
+    killall ts_test 2>>/tmp/test.log
+}
+
+function total_test_func() {
+    local pct=0
+    test_list=$@
+    result_string="Total Test...........Start!!\n"
+    local items=11
+    local processed=1
+    echo "" > /tmp/test.log
+    (   echo "XXX"
+        echo $result_string
+        echo "XXX"
+        echo "$pct"
+    )  | dialog --backtitle "${backtitle}" --begin 2 0 --title "Total Test" --gauge "Wait please..." 18 100 0
+
+    while [ $processed -lt $items ]
+    do
+        processed=$((processed + 1))
+        total_test_part_func "${pct}"
+        pct=$((processed * 100/ items))
+        (
+            echo "XXX"
+            echo $result_string
+            echo "XXX"
+            echo "$pct"
+        ) | dialog --backtitle "${backtitle}" --begin 2 0 --title "Total Test" --gauge "Wait please..." 18 100 0
+    done 
+    sleep 2
+    log_time_stamp
+    echo -e "$result_string" >> /tmp/test.log
+    if [[ $result_string == *"Fail"* ]]; then
+        dialog --title "Total Test Fail" \
+        --msgbox "$result_string                             [ Total Test Failed ]" 20 100 
+    else
+        dialog --title "Total Test Success" \
+        --msgbox "$result_string                            [ Total Test Success ]" 20 100 
+    fi
+    test_list=""
+    result_string=""
+}
+
+function main_menu() {
+    local title="[ M A I N - M E N U ]"
+    while : 
+    do
+    dialog --clear  --help-button --backtitle "${backtitle}" --begin 2 0 \
+--title "${title}" \
+--menu "${menu_explain}" 18 100 11 \
+"${main_item_array[0]}" "Whole Testing by Checking Box" \
+"${main_item_array[1]}" "Testing Each Category" \
+"${main_item_array[2]}" "Testing Each Category" \
+"Exit" "Exit to the Program" 2>"${MAIN_INPUT}"
+    return_value=$?
+    case $return_value in
+       $DIALOG_CANCEL)
+            exit_yesno "${title}"
+            if [ $? -eq 0 ]; then
+                break;
+            else
+                continue;
+            fi
+            ;;
+        $DIALOG_HELP)
+            echo "Help!!"; continue;;
+    esac
+
+    menuitem=$(<"${MAIN_INPUT}")
+
+    case $menuitem in
+        "${main_item_array[0]}") total_test_menu ;;
+        "${main_item_array[1]}") unit_test_menu ;;
+        "${main_item_array[2]}") log_viewer ;;
+        "Exit") 
+            exit_yesno "${title}"
+            if [ $? -eq 0 ]; then
+                break;
+            else
+                continue;
+            fi
+            ;;
+    esac
+    done
+}
+
+function unit_test_menu() {
+    while : 
+    do
+    #BACK_TITLE="${backtitle}"
+    dialog --clear  --help-button --backtitle "${backtitle}" --begin 2 0 \
+--title "[ U N I T - T E S T ]" \
+--menu "${menu_explain}" 18 100 12 \
+"${unit_item_array[0]}" "Testing Ethernet Ping Test" \
+"${unit_item_array[1]}" "Testing Ethernet Throughput Test" \
+"${unit_item_array[2]}" "Testng Audio Sine wav" \
+"${unit_item_array[3]}" "Testing Buzzer Tone/Wave" \
+"${unit_item_array[4]}" "Testing RTC time" \
+"${unit_item_array[5]}" "Testing UART" \
+"${unit_item_array[6]}" "Testing USB Memory Stick" \
+"${unit_item_array[7]}" "Testing SD Card" \
+"${unit_item_array[8]}" "Testing LCD Color/Gradient" \
+"${unit_item_array[9]}" "Testing Touchscreen" \
+2>"${INPUT}"
+
+    return_value=$?
+    case $return_value in
+       $DIALOG_CANCEL)
+            break;;
+        $DIALOG_HELP)
+            echo "Help!!"; continue;;
+    esac
+
+    menuitem=$(<"${INPUT}")
+
+    case $menuitem in
+        "${unit_item_array[0]}") ethernet_ping_unit ;;
+        "${unit_item_array[1]}") ethernet_throughput_unit ;;
+        "${unit_item_array[2]}") audio_unit ;;
+        "${unit_item_array[3]}") buzzer_unit ;;
+        "${unit_item_array[4]}") rtc_unit ;;
+        "${unit_item_array[5]}") uart_unit ;;
+        "${unit_item_array[6]}") usb_unit ;;
+        "${unit_item_array[7]}") sd_unit ;;
+        "${unit_item_array[8]}") lcd_unit ;;
+        "${unit_item_array[9]}") touch_unit ;;
+        "Exit") break;;
+    esac
+    done
+}
+
+
+function total_test_menu() {
+    while : 
+    do
+    dialog --clear --help-button --backtitle "${backtitle}" --begin 2 0 \
+--title "[ T O T A L - T E S T ]" --ok-label "Start!" \
+--checklist "${menu_explain}" 18 100 12 \
+"${unit_item_array[0]}" "Testing Ethernet Ping Test" off \
+"${unit_item_array[1]}" "Testing Ethernet Throughput Test" off \
+"${unit_item_array[2]}" "Testng Audio Sine wav" on \
+"${unit_item_array[3]}" "Testing Buzzer Tone/Wave" on \
+"${unit_item_array[4]}" "Testing RTC time" on \
+"${unit_item_array[5]}" "Testing UART" on \
+"${unit_item_array[6]}" "Testing USB Memory Stick" on \
+"${unit_item_array[7]}" "Testing SD Card" on \
+"${unit_item_array[8]}" "Testing LCD Color/Gradient" on \
+"${unit_item_array[9]}" "Testing Touchscreen" on \
+2>"${INPUT}"
+
+    return_value=$?
+    sed '1,1d' ${INPUT}
+    menuitem=$(<"${INPUT}")
+
+    case $return_value in
+        $DIALOG_OK)
+            total_test_func $menuitem;;
+        $DIALOG_CANCEL)
+            break;;
+        $DIALOG_HELP)
+            echo "Help!!"; continue;;
+    esac
+    done
+}
+
+
+
+
+
+main_menu
