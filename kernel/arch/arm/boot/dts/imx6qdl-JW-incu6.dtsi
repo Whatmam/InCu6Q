@@ -50,6 +50,16 @@
 			enable-active-low;
             regulator-always-on;
 		};
+
+		reg_rgb_lcd: regulator-rgb-lcd {
+			compatible = "regulator-fixed";
+			regulator-name = "lcd-rgb-power";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio2 9 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+
 	};
 
 	leds {
@@ -139,9 +149,10 @@
 
 	backlight {
 		compatible = "pwm-backlight";
-		pwms = <&pwm3 0 5000000>;
+		pwms = <&pwm4 0 10000000>;
+		power-supply = <&reg_rgb_lcd>;
 		brightness-levels = <0 4 8 16 32 64 128 255>;
-		default-brightness-level = <7>;
+		default-brightness-level = <255>;
 		status = "okay";
 	};
 };
@@ -513,6 +524,16 @@
 			fsl,pins = <
 				/*MX6QDL_PAD_SD1_DAT3__PWM1_OUT		0x1b0b1*/
 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1a0b1
+				MX6QDL_PAD_SD4_DAT2__GPIO2_IO10		0x1a0b1
+			>;
+		};
+
+		pinctrl_pwm4: pwm4grp {
+			fsl,pins = <
+				/*MX6QDL_PAD_SD1_DAT3__PWM1_OUT		0x1b0b1*/
+				MX6QDL_PAD_SD4_DAT1__GPIO2_IO09		0x1a0b1
+				MX6QDL_PAD_SD4_DAT2__PWM4_OUT		0x1a0b1
+
 			>;
 		};
 
@@ -632,6 +653,13 @@
 &pwm3 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pwm3>;
+	status = "disabled";
+};
+
+&pwm4 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm4>;
+
 	status = "okay";
 };
 
