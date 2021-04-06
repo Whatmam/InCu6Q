@@ -4,8 +4,8 @@
 
 menu "Misc devices"
 
-config GPIO_SWITCH
-	tristate "GPIO Switch device"
+config GPIO_JW
+	tristate "GPIO JW device"
 
 config SENSORS_LIS3LV02D
 	tristate
