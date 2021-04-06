@@ -26,12 +26,24 @@
 #include "../codecs/wm8960.h"
 #include "fsl_sai.h"
 
+/* Jang */
+#include <sound/soc-dai.h>
+#include "imx-audmux.h"
+
+#if	0 
+#define DBG(x...)	printk(KERN_INFO x)
+#else
+#define DBG(x...)
+#endif
+
+#define DAI_NAME_SIZE	32
+#define DEFAULT_MCLK_FREQ (24000000)
+
 struct imx_wm8960_data {
 	struct snd_soc_card card;
 	struct clk *codec_clk;
 	unsigned int clk_frequency;
 	bool is_codec_master;
-	bool is_codec_rpmsg;
 	bool is_stream_in_use[2];
 	bool is_stream_opened[2];
 	struct regmap *gpr;
@@ -44,8 +56,10 @@ struct imx_priv {
 	enum of_gpio_flags hp_active_low;
 	enum of_gpio_flags mic_active_low;
 	bool is_headset_jack;
+	struct snd_kcontrol *headphone_kctl;
 	struct platform_device *pdev;
 	struct platform_device *asrc_pdev;
+	struct snd_card *snd_card;
 };
 
 static struct imx_priv card_priv;
@@ -90,6 +104,7 @@ static int hp_jack_status_check(void *data)
 			snd_soc_dapm_disable_pin(dapm, "Main MIC");
 		}
 		ret = imx_hp_jack_gpio.report;
+		snd_kctl_jack_report(priv->snd_card, priv->headphone_kctl, 1);
 	} else {
 		snd_soc_dapm_enable_pin(dapm, "Ext Spk");
 		if (priv->is_headset_jack) {
@@ -97,6 +112,7 @@ static int hp_jack_status_check(void *data)
 			snd_soc_dapm_enable_pin(dapm, "Main MIC");
 		}
 		ret = 0;
+		snd_kctl_jack_report(priv->snd_card, priv->headphone_kctl, 0);
 	}
 
 	return ret;
@@ -136,8 +152,9 @@ static int imx_wm8960_jack_init(struct snd_soc_card *card,
 	int ret;
 
 	ret = snd_soc_card_jack_new(card, pin->pin, pin->mask, jack, pin, 1);
-	if (ret)
+	if (ret) {
 		return ret;
+	}
 
 	ret = snd_soc_jack_add_gpios(jack, 1, gpio);
 	if (ret)
@@ -194,11 +211,16 @@ static int imx_hifi_hw_params(struct snd_pcm_substream *substream,
 	unsigned int pll_out;
 	unsigned int fmt;
 	int ret = 0;
+	u32 channels = params_channels(params);
+	u32 reg=0;
+	struct snd_soc_component *component = codec_dai->component;
 
 	data->is_stream_in_use[tx] = true;
+	//DBG("sample_rate : %d\n", sample_rate);
 
 	if (data->is_stream_in_use[!tx])
 		return 0;
+	DBG("%s : Start\n", __func__);
 
 	if (data->is_codec_master)
 		fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
@@ -221,25 +243,33 @@ static int imx_hifi_hw_params(struct snd_pcm_substream *substream,
 	}
 
 	if (!data->is_codec_master) {
-		ret = snd_soc_dai_set_tdm_slot(cpu_dai, 0, 0, 2,
-					       params_physical_width(params));
+
+		ret = snd_soc_dai_set_tdm_slot(cpu_dai,
+				channels == 1 ? 1 : 0x3,
+				channels == 1 ? 1 : 0x3,
+				2, params_width(params));
+
 		if (ret) {
 			dev_err(dev, "failed to set cpu dai tdm slot: %d\n", ret);
 			return ret;
 		}
 
-		ret = snd_soc_dai_set_sysclk(cpu_dai, 0, 0, SND_SOC_CLOCK_OUT);
+	ret = snd_soc_dai_set_sysclk(cpu_dai, 0, 0, SND_SOC_CLOCK_OUT);
+	/*
 		if (ret) {
 			dev_err(dev, "failed to set cpu sysclk: %d\n", ret);
 			return ret;
 		}
-		return 0;
+		*/
+	return 0;
 	} else {
 		ret = snd_soc_dai_set_sysclk(cpu_dai, 0, 0, SND_SOC_CLOCK_IN);
+		/*
 		if (ret) {
 			dev_err(dev, "failed to set cpu sysclk: %d\n", ret);
 			return ret;
 		}
+		*/
 	}
 
 	data->clk_frequency = clk_get_rate(data->codec_clk);
@@ -249,11 +279,14 @@ static int imx_hifi_hw_params(struct snd_pcm_substream *substream,
 		pll_out = sample_rate * 768;
 	else
 		pll_out = sample_rate * 512;
+	
+	DBG("data->clk_frequency : %d - pll_out : %d\n", data->clk_frequency, pll_out);
 
 	ret = snd_soc_dai_set_pll(codec_dai, WM8960_SYSCLK_AUTO, 0, data->clk_frequency, pll_out);
 	if (ret)
 		return ret;
 	ret = snd_soc_dai_set_sysclk(codec_dai, WM8960_SYSCLK_AUTO, pll_out, 0);
+	DBG("%s : End\n", __func__);
 
 	return ret;
 }
@@ -269,10 +302,8 @@ static int imx_hifi_hw_free(struct snd_pcm_substream *substream)
 	int ret;
 
 	data->is_stream_in_use[tx] = false;
-
 	if (data->is_codec_master && !data->is_stream_in_use[!tx]) {
-		ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_CBS_CFS |
-				SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF);
+		ret = snd_soc_dai_set_fmt(codec_dai, SND_SOC_DAIFMT_CBS_CFS | SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF);
 		if (ret)
 			dev_warn(dev, "failed to set codec dai fmt: %d\n", ret);
 	}
@@ -289,19 +320,12 @@ static struct snd_pcm_hw_constraint_list imx_wm8960_rate_constraints = {
 static int imx_hifi_startup(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
+	//struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
 	struct snd_soc_card *card = rtd->card;
 	struct imx_wm8960_data *data = snd_soc_card_get_drvdata(card);
-	bool tx = substream->stream == SNDRV_PCM_STREAM_PLAYBACK;
-	struct fsl_sai *sai = dev_get_drvdata(cpu_dai->dev);
+	//bool tx = substream->stream == SNDRV_PCM_STREAM_PLAYBACK;
+	//struct fsl_sai *sai = dev_get_drvdata(cpu_dai->dev);
 	int ret = 0;
-
-	data->is_stream_opened[tx] = true;
-	if (data->is_stream_opened[tx] != sai->is_stream_opened[tx] ||
-	    data->is_stream_opened[!tx] != sai->is_stream_opened[!tx]) {
-		data->is_stream_opened[tx] = false;
-		return -EBUSY;
-	}
 
 	if (!data->is_codec_master) {
 		ret = snd_pcm_hw_constraint_list(substream->runtime, 0,
@@ -309,6 +333,14 @@ static int imx_hifi_startup(struct snd_pcm_substream *substream)
 		if (ret)
 			return ret;
 	}
+
+
+	ret = clk_prepare_enable(data->codec_clk);
+	if (ret) {
+		dev_err(card->dev, "Failed to enable MCLK: %d\n", ret);
+		return ret;
+	}
+
 
 	return ret;
 }
@@ -319,6 +351,8 @@ static void imx_hifi_shutdown(struct snd_pcm_substream *substream)
 	struct snd_soc_card *card = rtd->card;
 	struct imx_wm8960_data *data = snd_soc_card_get_drvdata(card);
 	bool tx = substream->stream == SNDRV_PCM_STREAM_PLAYBACK;
+
+	clk_disable_unprepare(data->codec_clk);
 
 	data->is_stream_opened[tx] = false;
 }
@@ -336,24 +370,89 @@ static int imx_wm8960_late_probe(struct snd_soc_card *card)
 		&card->rtd_list, struct snd_soc_pcm_runtime, list);
 	struct snd_soc_dai *codec_dai = rtd->codec_dai;
 	struct snd_soc_component *component = codec_dai->component;
-	struct imx_wm8960_data *data = snd_soc_card_get_drvdata(card);
+	//struct imx_wm8960_data *data = snd_soc_card_get_drvdata(card);
+	u32 reg;
 
 	/*
 	 * codec ADCLRC pin configured as GPIO, DACLRC pin is used as a frame
 	 * clock for ADCs and DACs
 	 */
-	snd_soc_component_update_bits(component, WM8960_IFACE2, 1<<6, 1<<6);
+	//snd_soc_update_bits(codec, WM8960_IFACE2, 1<<6, 1<<6);
 
 	/* GPIO1 used as headphone detect output */
-	snd_soc_component_update_bits(component, WM8960_ADDCTL4, 7<<4, 3<<4);
+	//snd_soc_update_bits(codec, WM8960_ADDCTL4, 7<<4, 3<<4);
 
 	/* Enable headphone jack detect */
-	snd_soc_component_update_bits(component, WM8960_ADDCTL2, 1<<6, 1<<6);
-	snd_soc_component_update_bits(component, WM8960_ADDCTL2, 1<<5,
-				      data->hp_det[1]<<5);
-	snd_soc_component_update_bits(component, WM8960_ADDCTL4, 3<<2,
-				      data->hp_det[0]<<2);
-	snd_soc_component_update_bits(component, WM8960_ADDCTL1, 3, 3);
+	//snd_soc_update_bits(codec, WM8/960_ADDCTL2, 1<<6, 1<<6);
+	//snd_soc_update_bits(codec, WM8960_ADDCTL2, 1<<5, data->hp_det[1]<<5);
+	//snd_soc_update_bits(codec, WM8960_ADDCTL4, 3<<2, data->hp_det[0]<<2);
+	//snd_soc_update_bits(codec, WM8960_ADDCTL1, 3, 3);
+
+	//set Speaker Out
+	snd_soc_component_write(component, WM8960_LOUT2, 0xff | 0x0100);
+	snd_soc_component_write(component, WM8960_ROUT2, 0xff | 0x0100);
+
+	//set HP Out
+	snd_soc_component_write(component, WM8960_LOUT1, 0xff | 0x0100);
+	snd_soc_component_write(component, WM8960_ROUT1, 0xff | 0x0100);
+
+	
+	reg = snd_soc_component_read32(component, WM8960_POWER2);
+
+	//DBG("DACL : %s \nDACR : %s \nLOUT1 : %s \nROUT1 :%s SPKL : %s \nSPKR : %s \n", (reg & 0x100) ? "Enabled" : "Disabled", (reg & 0x80) ? "Enabled" : "Disabled", (reg & 0x40) ? "Enabled" : "Disabled", (reg & 0x20) ? "Enabled" : "Disabled", (reg & 0x10) ? "Enabled" : "Disabled", (reg & 0x08) ? "Enabled" : "Disabled");
+
+	snd_soc_component_write(component, WM8960_POWER2, (reg & 0xfffffe07) | 0x198);
+
+	reg = snd_soc_component_read32(component, WM8960_POWER2);
+
+	DBG("DACL : %s \nDACR : %s \nLOUT1 : %s \nROUT1 :%s SPKL : %s \nSPKR : %s \n", (reg & 0x100) ? "Enabled" : "Disabled", (reg & 0x80) ? "Enabled" : "Disabled", (reg & 0x40) ? "Enabled" : "Disabled", (reg & 0x20) ? "Enabled" : "Disabled", (reg & 0x10) ? "Enabled" : "Disabled", (reg & 0x08) ? "Enabled" : "Disabled");
+
+
+
+	reg = snd_soc_component_read32(component, WM8960_CLASSD1);
+	snd_soc_component_write(component, WM8960_CLASSD1, reg | 0xC0);
+	DBG("Class D Control : %s\n", (reg & 0xc0) ? "Enabled" : "Disabled");
+	reg = snd_soc_component_read32(component, WM8960_LDAC);
+	DBG("LDAC : %d\n", reg);
+	reg = snd_soc_component_read32(component, WM8960_RDAC);
+	DBG("RDAC : %d\n", reg);
+
+	reg = snd_soc_component_read32(component, WM8960_POWER3);
+	//DBG("LOMIX : %s \nROMIX :%s\n", (reg & 0x8) ? "Enabled" : "Disabled", (reg & 0x10) ? "Enabled" : "Disabled");
+	reg = snd_soc_component_write(component, WM8960_POWER3, (reg & 0xffe7) | 0x18);
+
+	reg = snd_soc_component_read32(component, WM8960_POWER3);
+	DBG("LOMIX : %s \nROMIX :%s\n", (reg & 0x8) ? "Enabled" : "Disabled", (reg & 0x10) ? "Enabled" : "Disabled");
+
+	reg = snd_soc_component_read32(component, WM8960_LOUTMIX);
+	//DBG("LD2LO : %s\n", (reg & 0x100) ? "Enabled" : "Disabled(Mute)");
+	//DBG("LI2LO : %s\n", (reg & 0x80) ? "Enabled" : "Disabled(Mute)");
+	snd_soc_component_write(component, WM8960_LOUTMIX, (reg & 0xfffffeff)| 0x100);
+	snd_soc_component_write(component, WM8960_LOUTMIX, (reg & 0xffffff7f));
+	reg = snd_soc_component_read32(component, WM8960_LOUTMIX);
+	DBG("LD2LO : %s\n", (reg & 0x100) ? "Enabled" : "Disabled(Mute)");
+	DBG("LI2LO : %s\n", (reg & 0x80) ? "Enabled" : "Disabled(Mute)");
+
+	reg = snd_soc_component_read32(component, WM8960_BYPASS1);
+	//DBG("LB2LO : %s\n", (reg & 0x80) ? "Enabled" : "Disabled(Mute)");
+	snd_soc_component_write(component, WM8960_BYPASS1, (reg & 0xffffff7f));
+	reg = snd_soc_component_read32(component, WM8960_BYPASS1);
+	DBG("LB2LO : %s\n", (reg & 0x80) ? "Enabled" : "Disabled(Mute)");
+
+
+	reg = snd_soc_component_read32(component, WM8960_ROUTMIX);
+	//DBG("RD2RO : %s\n", (reg & 0x100) ? "Enabled" : "Disabled(Mute)");
+	//DBG("RI2RO : %s\n", (reg & 0x80) ? "Enabled" : "Disabled(Mute)");
+	snd_soc_component_write(component, WM8960_ROUTMIX, (reg & 0xfffffe7f)| 0x100);
+	reg = snd_soc_component_read32(component, WM8960_ROUTMIX);
+	DBG("RD2RO : %s\n", (reg & 0x100) ? "Enabled" : "Disabled(Mute)");
+	DBG("RI2RO : %s\n", (reg & 0x80) ? "Enabled" : "Disabled(Mute)");
+
+	reg = snd_soc_component_read32(component, WM8960_BYPASS2);
+	//DBG("RB2RO : %s\n", (reg & 0x80) ? "Enabled" : "Disabled(Mute)");
+	snd_soc_component_write(component, WM8960_BYPASS1, (reg & 0xffffff7f));
+	reg = snd_soc_component_read32(component, WM8960_BYPASS2);
+	DBG("RB2RO : %s\n", (reg & 0x80) ? "Enabled" : "Disabled(Mute)");
 
 	return 0;
 }
@@ -412,68 +511,26 @@ static struct snd_soc_dai_link imx_wm8960_dai[] = {
 	},
 };
 
-static int of_parse_gpr(struct platform_device *pdev,
-			struct imx_wm8960_data *data)
-{
-	int ret;
-	struct of_phandle_args args;
-
-	if (of_device_is_compatible(pdev->dev.of_node,
-				    "fsl,imx7d-evk-wm8960"))
-		return 0;
-
-	ret = of_parse_phandle_with_fixed_args(pdev->dev.of_node,
-					       "gpr", 3, 0, &args);
-	if (ret) {
-		dev_warn(&pdev->dev, "failed to get gpr property\n");
-		return ret;
-	}
-
-	data->gpr = syscon_node_to_regmap(args.np);
-	if (IS_ERR(data->gpr)) {
-		ret = PTR_ERR(data->gpr);
-		dev_err(&pdev->dev, "failed to get gpr regmap\n");
-		return ret;
-	}
-
-	regmap_update_bits(data->gpr, args.args[0], args.args[1],
-			   args.args[2]);
-
-	return 0;
-}
-
 static int imx_wm8960_probe(struct platform_device *pdev)
 {
-	struct device_node *cpu_np = NULL, *codec_np = NULL;
+	struct device_node *cpu_np, *codec_np = NULL;
+	struct device_node *np = pdev->dev.of_node;
+	struct device_node *gpr_np;
 	struct platform_device *cpu_pdev;
 	struct imx_priv *priv = &card_priv;
+	struct i2c_client *codec_dev;
 	struct imx_wm8960_data *data;
 	struct platform_device *asrc_pdev = NULL;
 	struct device_node *asrc_np;
 	u32 width;
 	int ret;
+	int int_port, ext_port, tmp_port;
 
 	priv->pdev = pdev;
-
-	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-	if (!data) {
-		ret = -ENOMEM;
-		goto fail;
-	}
-
-	if (of_property_read_bool(pdev->dev.of_node, "codec-rpmsg"))
-		data->is_codec_rpmsg = true;
 
 	cpu_np = of_parse_phandle(pdev->dev.of_node, "cpu-dai", 0);
 	if (!cpu_np) {
 		dev_err(&pdev->dev, "cpu dai phandle missing or invalid\n");
-		ret = -EINVAL;
-		goto fail;
-	}
-
-	cpu_pdev = of_find_device_by_node(cpu_np);
-	if (!cpu_pdev) {
-		dev_err(&pdev->dev, "failed to find SAI platform device\n");
 		ret = -EINVAL;
 		goto fail;
 	}
@@ -485,46 +542,91 @@ static int imx_wm8960_probe(struct platform_device *pdev)
 		goto fail;
 	}
 
-	if (data->is_codec_rpmsg) {
-		struct platform_device *codec_dev;
+	cpu_pdev = of_find_device_by_node(cpu_np);
+	if (!cpu_pdev) {
+		dev_err(&pdev->dev, "failed to find SAI platform device\n");
+		ret = -EINVAL;
+		goto fail;
+	}
 
-		codec_dev = of_find_device_by_node(codec_np);
-		if (!codec_dev || !codec_dev->dev.driver) {
-			dev_err(&pdev->dev, "failed to find codec platform device\n");
-			ret = -EINVAL;
-			goto fail;
-		}
+	codec_dev = of_find_i2c_device_by_node(codec_np);
+	if (!codec_dev || !codec_dev->dev.driver) {
+		dev_err(&pdev->dev, "failed to find codec platform device\n");
+		ret = -EINVAL;
+		goto fail;
+	}
 
-		data->codec_clk = devm_clk_get(&codec_dev->dev, "mclk");
-		if (IS_ERR(data->codec_clk)) {
-			ret = PTR_ERR(data->codec_clk);
-			dev_err(&pdev->dev, "failed to get codec clk: %d\n", ret);
-			goto fail;
-		}
-	} else {
-		struct i2c_client *codec_dev;
-
-		codec_dev = of_find_i2c_device_by_node(codec_np);
-		if (!codec_dev || !codec_dev->dev.driver) {
-			dev_err(&pdev->dev, "failed to find codec platform device\n");
-			ret = -EINVAL;
-			goto fail;
-		}
-
-		data->codec_clk = devm_clk_get(&codec_dev->dev, "mclk");
-		if (IS_ERR(data->codec_clk)) {
-			ret = PTR_ERR(data->codec_clk);
-			dev_err(&pdev->dev, "failed to get codec clk: %d\n", ret);
-			goto fail;
-		}
+	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+	if (!data) {
+		ret = -ENOMEM;
+		goto fail;
 	}
 
 	if (of_property_read_bool(pdev->dev.of_node, "codec-master"))
 		data->is_codec_master = true;
 
-	ret = of_parse_gpr(pdev, data);
-	if (ret)
+	ret = of_property_read_u32(np, "mux-int-port", &int_port);
+        if (ret) {
+                dev_err(&pdev->dev, "mux-int-port missing or invalid\n");
+                return ret;
+        }
+
+        ret = of_property_read_u32(np, "mux-ext-port", &ext_port);
+        if (ret) {
+                dev_err(&pdev->dev, "mux-ext-port missing or invalid\n");
+                return ret;
+        }
+
+	int_port -= 1;
+        ext_port -= 1;
+
+        if (!data->is_codec_master) {
+                tmp_port = int_port;
+                int_port = ext_port;
+                ext_port = tmp_port;
+        }
+	DBG("Jang : AUD Mux int -> %d ext -> %d", int_port, ext_port);
+
+        ret = imx_audmux_v2_configure_port(int_port,
+                        IMX_AUDMUX_V2_PTCR_SYN |
+                        IMX_AUDMUX_V2_PTCR_TFSEL(ext_port) |
+                        IMX_AUDMUX_V2_PTCR_TCSEL(ext_port) |
+                        IMX_AUDMUX_V2_PTCR_TFSDIR |
+                        IMX_AUDMUX_V2_PTCR_TCLKDIR,
+                        IMX_AUDMUX_V2_PDCR_RXDSEL(ext_port));
+	if (ret) {
+                dev_err(&pdev->dev, "audmux internal port setup failed\n");
+                return ret;
+        }
+
+	ret = imx_audmux_v2_configure_port(ext_port,
+                        IMX_AUDMUX_V2_PTCR_SYN,
+                        IMX_AUDMUX_V2_PDCR_RXDSEL(int_port));
+	
+	if (ret) {
+                dev_err(&pdev->dev, "audmux external port setup failed\n");
+                return ret;
+        }
+
+	data->codec_clk = devm_clk_get(&codec_dev->dev, "mclk");
+	if (IS_ERR(data->codec_clk)) {
+		ret = PTR_ERR(data->codec_clk);
+		dev_err(&pdev->dev, "failed to get codec clk: %d\n", ret);
 		goto fail;
+	}
+
+	gpr_np = of_parse_phandle(pdev->dev.of_node, "gpr", 0);
+        if (gpr_np) {
+		data->gpr = syscon_node_to_regmap(gpr_np);
+		if (IS_ERR(data->gpr)) {
+			ret = PTR_ERR(data->gpr);
+			dev_err(&pdev->dev, "failed to get gpr regmap\n");
+			goto fail;
+		}
+
+		/* set SAI2_MCLK_DIR to enable codec MCLK for imx7d */
+		regmap_update_bits(data->gpr, 4, 1<<20, 1<<20);
+	}
 
 	of_property_read_u32_array(pdev->dev.of_node, "hp-det", data->hp_det, 2);
 
@@ -536,12 +638,7 @@ static int imx_wm8960_probe(struct platform_device *pdev)
 
 	data->card.dai_link = imx_wm8960_dai;
 
-	if (data->is_codec_rpmsg) {
-		imx_wm8960_dai[0].codec_name     = "rpmsg-audio-codec-wm8960";
-		imx_wm8960_dai[0].codec_dai_name = "rpmsg-wm8960-hifi";
-	} else
-		imx_wm8960_dai[0].codec_of_node	= codec_np;
-
+	imx_wm8960_dai[0].codec_of_node	= codec_np;
 	imx_wm8960_dai[0].cpu_dai_name = dev_name(&cpu_pdev->dev);
 	imx_wm8960_dai[0].platform_of_node = cpu_np;
 
@@ -550,11 +647,7 @@ static int imx_wm8960_probe(struct platform_device *pdev)
 	} else {
 		imx_wm8960_dai[1].cpu_of_node = asrc_np;
 		imx_wm8960_dai[1].platform_of_node = asrc_np;
-		if (data->is_codec_rpmsg) {
-			imx_wm8960_dai[2].codec_name     = "rpmsg-audio-codec-wm8960";
-			imx_wm8960_dai[2].codec_dai_name = "rpmsg-wm8960-hifi";
-		} else
-			imx_wm8960_dai[2].codec_of_node	= codec_np;
+		imx_wm8960_dai[2].codec_of_node	= codec_np;
 		imx_wm8960_dai[2].cpu_dai_name = dev_name(&cpu_pdev->dev);
 		data->card.num_links = 3;
 
@@ -600,6 +693,8 @@ static int imx_wm8960_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
 		goto fail;
 	}
+
+	priv->snd_card = data->card.snd_card;
 
 	imx_hp_jack_gpio.gpio = of_get_named_gpio_flags(pdev->dev.of_node,
 			"hp-det-gpios", 0, &priv->hp_active_low);
@@ -668,8 +763,7 @@ static int imx_wm8960_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id imx_wm8960_dt_ids[] = {
-	{ .compatible = "fsl,imx-audio-wm8960", },
-	{ .compatible = "fsl,imx7d-evk-wm8960"  },
+	{ .compatible = "fsl,imx-hybus-wm8960" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, imx_wm8960_dt_ids);
