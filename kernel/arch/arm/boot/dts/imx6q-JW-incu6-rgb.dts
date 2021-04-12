@@ -1,0 +1,47 @@
+// SPDX-License-Identifier: GPL-2.0+
+//
+// Copyright 2012 Freescale Semiconductor, Inc.
+// Copyright 2011 Linaro Ltd.
+
+/dts-v1/;
+
+#include "imx6q.dtsi"
+#include "imx6qdl-JW-incu6.dtsi"
+
+/ {
+	model = "Freescale i.MX6 Quad SABRE Smart Device Board";
+	compatible = "fsl,imx6q-jw-rgb", "fsl,imx6q";
+
+	lcd: lcd@0 {
+        status = "okay";
+    };
+};
+
+&ldb {
+    status = "disabled";
+	lvds-channel@0 {
+        status = "disabled";
+	};
+
+	lvds-channel@1 {
+        status = "disabled";
+	};
+};
+
+&lcd {
+    status = "okay";
+};
+
+&mxcfb1 {
+	disp_dev = "lcd";
+    mode_str ="AT070TN94-WVGA";
+    default_ifmt = "RGB24";
+    status = "okay";
+};
+
+&mxcfb2 {
+	disp_dev = "ldb";
+    default_ifmt = "RGB666";
+    status = "disabled";
+};
+
