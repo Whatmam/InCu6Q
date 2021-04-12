@@ -49,7 +49,10 @@
 	<CMD state="Updater" type="push" body="send" file="files/zImage">Sending zImage</CMD>
 	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/zImage">Sending dtbs</CMD>
 	<CMD state="Updater" type="push" body="send" file="files/imx6q-JW-incu6-rgb.dtb">Sending dtbs</CMD>
-	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/imx6q-JW-rgb.dtb">Sending dtbs</CMD>
+	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/imx6q-JW-incu6-rgb.dtb">Sending dtbs</CMD>
+	<CMD state="Updater" type="push" body="send" file="files/imx6q-JW-incu6-lvds.dtb">Sending dtbs</CMD>
+	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/imx6q-JW-incu6-lvds.dtb">Sending dtbs</CMD>
+
 	<CMD state="Updater" type="push" body="$ rm $FILE">Sending dtbs</CMD>
 	<CMD state="Updater" type="push" body="$ umount /mnt">Sending dtbs</CMD>
 	
@@ -100,7 +103,10 @@
 	<CMD state="Updater" type="push" body="send" file="files/zImage">Sending zImage</CMD>
 	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/zImage">Sending dtbs</CMD>
 	<CMD state="Updater" type="push" body="send" file="files/imx6q-JW-incu6-rgb.dtb">Sending dtbs</CMD>
-	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/imx6q-JW-rgb.dtb">Sending dtbs</CMD>
+	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/imx6q-JW-incu6-rgb.dtb">Sending dtbs</CMD>
+	<CMD state="Updater" type="push" body="send" file="files/imx6q-JW-incu6-lvds.dtb">Sending dtbs</CMD>
+	<CMD state="Updater" type="push" body="$ cp $FILE /mnt/imx6q-JW-incu6-lvds.dtb">Sending dtbs</CMD>
+
 	<CMD state="Updater" type="push" body="$ rm $FILE">Sending dtbs</CMD>
 	<CMD state="Updater" type="push" body="$ umount /mnt">Sending dtbs</CMD>
 
