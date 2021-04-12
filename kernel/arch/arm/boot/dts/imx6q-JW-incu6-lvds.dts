@@ -10,8 +10,7 @@
 
 / {
 	model = "Freescale i.MX6 Quad Whatmam Smart Device Board";
-	compatible = "fsl,imx6q-sabresd", "fsl,imx6q";
-
+	compatible = "fsl,imx6q-jw-lvds", "fsl,imx6q";
 	lcd: lcd@0 {
         //status = "okay";
         status = "disabled";
@@ -29,21 +28,18 @@
 };
 
 &lcd {
-    status = "okay";
+    status = "disabled";
 };
 
 &mxcfb1 {
+	disp_dev = "ldb";
+	default_ifmt = "RGB666";
 	status = "okay";
-	disp_dev = "lcd";
-    mode_str ="AT070TN94-WVGA";
-    default_ifmt = "RGB24";
-    //status = "okay";
-    status = "disabled";
-
 };
 
 &mxcfb2 {
-	disp_dev = "ldb";
-    default_ifmt = "RGB666";
-    status = "okay";
+	disp_dev = "lcd";
+	mode_str ="AT070TN94-WVGA";
+	default_ifmt = "RGB24";
+	status = "disabled";
 };

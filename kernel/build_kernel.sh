@@ -15,8 +15,8 @@ make modules
 make modules_install
 cp -vrfp arch/arm/boot/zImage ./zImage
 cp -vrfp zImage ../i.MX6_MFG_Tools_JW/Profiles/Linux/OS\ Firmware/files/
-cp -vrfp arch/arm/boot/dts/imx6dl-JW-incu6.dtb ./imx6dl-JW-rgb.dtb
-cp -vrfp arch/arm/boot/dts/imx6q-JW-incu6.dtb ./imx6q-JW-rgb.dtb
+cp -vrfp arch/arm/boot/dts/imx6q-JW-incu6-rgb.dtb ./
+cp -vrfp arch/arm/boot/dts/imx6q-JW-incu6-lvds.dtb ./
 cp -vrfp *.dtb ../i.MX6_MFG_Tools_JW/Profiles/Linux/OS\ Firmware/files/
 
 export ARCH=arm

@@ -153,7 +153,7 @@
 		pwms = <&pwm4 0 10000000>;
 		power-supply = <&reg_rgb_lcd>;
 		brightness-levels = <0 4 8 16 32 64 128 255>;
-		default-brightness-level = <255>;
+		default-brightness-level = <7>;
 		status = "okay";
 	};
 };

@@ -506,7 +506,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-icore-ofcap10.dtb \
 	imx6q-icore-ofcap12.dtb \
 	imx6q-icore-rqs.dtb \
-	imx6q-JW-incu6.dtb \
+	imx6q-JW-incu6-rgb.dtb \
+	imx6q-JW-incu6-lvds.dtb \
 	imx6q-kp-tpc.dtb \
 	imx6q-marsboard.dtb \
 	imx6q-mccmon6.dtb \

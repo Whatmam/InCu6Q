@@ -798,6 +798,68 @@ int board_early_init_f(void)
 	return 0;
 }
 
+#define LCD_MODE_SWITCH_RGB IMX_GPIO_NR(3, 28)
+#define LCD_MODE_SWITCH_LVDS IMX_GPIO_NR(3, 29)
+iomux_v3_cfg_t const lcd_gpio_pads[] = {
+	IOMUX_PADS(PAD_EIM_D28__GPIO3_IO28 | MUX_PAD_CTRL(NO_PAD_CTRL | PAD_CTL_PKE)),
+	IOMUX_PADS(PAD_EIM_D29__GPIO3_IO29 | MUX_PAD_CTRL(NO_PAD_CTRL | PAD_CTL_PKE)),
+};
+
+int setup_gpio_switchs(void)
+{
+        int ret=0;
+        imx_iomux_v3_setup_multiple_pads(lcd_gpio_pads, ARRAY_SIZE(lcd_gpio_pads));
+
+        ret=gpio_request(LCD_MODE_SWITCH_RGB, "lcd_mode_rgb");      if(ret<0)printf("sw_rgb gpio request fail\r\n");
+        ret=gpio_request(LCD_MODE_SWITCH_LVDS, "lcd_mode_lvds");      if(ret<0)printf("sw_lvds gpio request fail\r\n");
+
+        gpio_direction_input(LCD_MODE_SWITCH_RGB);
+        gpio_direction_input(LCD_MODE_SWITCH_LVDS);
+
+        printf("lcd_mode_switch_rgb=%d\r\n", gpio_get_value(LCD_MODE_SWITCH_RGB));
+        printf("lcd_mode_switch_lvds=%d\r\n", gpio_get_value(LCD_MODE_SWITCH_LVDS));
+
+        return ret;
+}
+
+int check_load_fdt(void)
+{
+	int switch_value=0;
+	char fdtname[30];
+	char env[10];
+	int tmp;
+	char mmcargs[100];
+	char *mmcargs_ptr = env_get("mmcargs");
+	setup_gpio_switchs();
+
+	switch_value = (gpio_get_value(LCD_MODE_SWITCH_RGB) | (gpio_get_value(LCD_MODE_SWITCH_RGB) << 1));
+
+	memset(fdtname, NULL, 30);
+	memset(env, NULL, 10);
+	memset(mmcargs, NULL, 50);
+	//memcpy(mmcargs, mmcargs_ptr, strlen(mmcargs_ptr));
+	strcpy(mmcargs, mmcargs_ptr);
+#ifdef CONFIG_MX6Q
+	sprintf(fdtname, "imx6q-JW-incu6-");
+#else
+	sprintf(fdtname, "imx6dl-JW-incu6-");
+#endif
+	if (switch_value == 0x01)
+	{
+		strcat(fdtname, "rgb.dtb");
+		strcat(mmcargs, " video=mxcfb0:dev=lcd,if=RGB24");
+	}
+	else
+	{
+		strcat(fdtname, "lvds.dtb");
+		strcat(mmcargs, " video=mxcfb0:dev=ldb,if=RGB666");
+	}
+
+	printf("dtb name : %s\r\n", fdtname);
+    env_set("fdt_file",fdtname);
+    env_set("mmcargs", mmcargs);
+}
+
 int board_init(void)
 {
 	/* address of boot parameters */
@@ -1230,7 +1292,8 @@ int board_late_init(void)
 #ifdef CONFIG_ENV_IS_IN_MMC
 	board_late_mmc_env_init();
 #endif
-
+	check_load_fdt();
+	
 	return 0;
 }
 
