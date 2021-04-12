@@ -798,8 +798,8 @@ int board_early_init_f(void)
 	return 0;
 }
 
-#define LCD_MODE_SWITCH_RGB IMX_GPIO_NR(3, 28)
-#define LCD_MODE_SWITCH_LVDS IMX_GPIO_NR(3, 29)
+#define LCD_MODE_SWITCH_LVDS IMX_GPIO_NR(3, 28)
+#define LCD_MODE_SWITCH_RGB IMX_GPIO_NR(3, 29)
 iomux_v3_cfg_t const lcd_gpio_pads[] = {
 	IOMUX_PADS(PAD_EIM_D28__GPIO3_IO28 | MUX_PAD_CTRL(NO_PAD_CTRL | PAD_CTL_PKE)),
 	IOMUX_PADS(PAD_EIM_D29__GPIO3_IO29 | MUX_PAD_CTRL(NO_PAD_CTRL | PAD_CTL_PKE)),
@@ -832,7 +832,9 @@ int check_load_fdt(void)
 	char *mmcargs_ptr = env_get("mmcargs");
 	setup_gpio_switchs();
 
-	switch_value = (gpio_get_value(LCD_MODE_SWITCH_RGB) | (gpio_get_value(LCD_MODE_SWITCH_RGB) << 1));
+	switch_value = (gpio_get_value(LCD_MODE_SWITCH_RGB) | (gpio_get_value(LCD_MODE_SWITCH_LVDS) << 1));
+    printf("lcd_mode_switch_value=%d\r\n", switch_value);
+
 
 	memset(fdtname, NULL, 30);
 	memset(env, NULL, 10);
@@ -844,7 +846,7 @@ int check_load_fdt(void)
 #else
 	sprintf(fdtname, "imx6dl-JW-incu6-");
 #endif
-	if (switch_value == 0x01)
+	if (switch_value == 2)
 	{
 		strcat(fdtname, "rgb.dtb");
 		strcat(mmcargs, " video=mxcfb0:dev=lcd,if=RGB24");
