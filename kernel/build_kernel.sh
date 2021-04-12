@@ -20,7 +20,7 @@ cp -vrfp arch/arm/boot/dts/imx6q-JW-incu6.dtb ./imx6q-JW-rgb.dtb
 cp -vrfp *.dtb ../i.MX6_MFG_Tools_JW/Profiles/Linux/OS\ Firmware/files/
 
 export ARCH=arm
-export CROSS_COMPILE='../Toolchain/gcc-arm-9.2-2019.12-x86_64-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-'
+export CROSS_COMPILE='../Toolchain/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-'
 #cd kernel-module-imx-gpu-viv
 #make
 #make modules_install

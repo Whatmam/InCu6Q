@@ -131,7 +131,8 @@
 	};
 	mxcfb2: fb@1 {
         compatible = "fsl,mxc_sdc_fb";
-        interface_pix_fmt = "RGB24";
+        interface_pix_fmt = "RGB666";
+		disp_dev = "ldb";
         default_bpp = <32>;
         int_clk = <0>;
         late_init = <0>;
@@ -481,10 +482,6 @@
 				MX6QDL_PAD_GPIO_6__I2C3_SDA		0x4001b8b1
 			>;
 		};
-		pinctrl_i2c4: i2c4grp {
-			fsl,pins = <
-			>;
-		};
 
 		pinctrl_ipu1: ipu1grp {
 			fsl,pins = <
@@ -629,8 +626,10 @@
 		};
 	};
 	lvds-channel@1 {
+		crtc = "ipu2-di1";
+		primary;
 		fsl,data-mapping = "spwg";
-		fsl,data-width = <24>;
+		fsl,data-width = <18>;
 		/* Single Channel Uses LVDS1 Channels */
 		status = "disabled";
 		display-timings {

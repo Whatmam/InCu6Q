@@ -13,17 +13,18 @@
 	compatible = "fsl,imx6q-sabresd", "fsl,imx6q";
 
 	lcd: lcd@0 {
-        status = "okay";
+        //status = "okay";
+        status = "disabled";
+
     };
 };
 
 &ldb {
 	lvds-channel@0 {
-		crtc = "ipu2-di0";
 	};
 
 	lvds-channel@1 {
-		crtc = "ipu2-di1";
+	status = "okay";
 	};
 };
 
@@ -36,9 +37,13 @@
 	disp_dev = "lcd";
     mode_str ="AT070TN94-WVGA";
     default_ifmt = "RGB24";
-    status = "okay";
+    //status = "okay";
+    status = "disabled";
+
 };
 
 &mxcfb2 {
-    status = "disabled";
+	disp_dev = "ldb";
+    default_ifmt = "RGB666";
+    status = "okay";
 };

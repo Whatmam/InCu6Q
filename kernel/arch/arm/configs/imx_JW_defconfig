@@ -3278,8 +3278,8 @@ CONFIG_MXC_MLB150=y
 # MXC VPU(Video Processing Unit) support
 #
 CONFIG_MXC_VPU=y
-# CONFIG_MXC_VPU_DEBUG is not set
-# CONFIG_MX6_VPU_352M is not set
+CONFIG_MXC_VPU_DEBUG=y
+CONFIG_MX6_VPU_352M=y
 # CONFIG_MX8_HDP is not set
 # CONFIG_MX8_HDP_RX is not set
 CONFIG_MXC_IPU=y
