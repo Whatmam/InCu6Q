@@ -1,9 +1,14 @@
-Toolchain/
-u-boot
+kernel/zImage
+kernel/*.dtb
+Image/*
 .vscode/settings.json
 .vscode*
-**/.vscode/
-kernel
-Image/*
+Filesystem/output
+Filesystem/rootfs_files/lib/modules
 i.MX6_MFG_Tools_JW/Profiles/Linux/OS Firmware/files/*
 i.MX6_MFG_Tools_JW/MfgTool.log
+Filesystem/rootfs_output
+buildroot
+Filesystem/buildroot-2020.02.10
+Toolchain
+Filesystem/rootfs_files/lib/modules
