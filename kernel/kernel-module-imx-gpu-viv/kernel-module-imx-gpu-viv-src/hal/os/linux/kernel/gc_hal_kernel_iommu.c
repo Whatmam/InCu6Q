@@ -2,7 +2,7 @@
 *
 *    The MIT License (MIT)
 *
-*    Copyright (c) 2014 - 2020 Vivante Corporation
+*    Copyright (c) 2014 - 2018 Vivante Corporation
 *
 *    Permission is hereby granted, free of charge, to any person obtaining a
 *    copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,7 @@
 *
 *    The GPL License (GPL)
 *
-*    Copyright (C) 2014 - 2020 Vivante Corporation
+*    Copyright (C) 2014 - 2018 Vivante Corporation
 *
 *    This program is free software; you can redistribute it and/or
 *    modify it under the terms of the GNU General Public License
@@ -95,10 +95,8 @@ _FlatMapping(
     IN gckIOMMU Iommu
     )
 {
-    gceSTATUS status = gcvSTATUS_OK;
+    gceSTATUS status;
     gctUINT32 physical;
-
-    gcmkHEADER_ARG("Iommu=%p", Iommu);
 
     for (physical = 0; physical < 0x80000000; physical += PAGE_SIZE)
     {
@@ -111,8 +109,9 @@ _FlatMapping(
         gcmkONERROR(gckIOMMU_Map(Iommu, physical, physical, PAGE_SIZE));
     }
 
+    return gcvSTATUS_OK;
+
 OnError:
-    gcmkFOOTER();
     return status;
 }
 
@@ -122,7 +121,7 @@ gckIOMMU_Destory(
     IN gckIOMMU Iommu
     )
 {
-    gcmkHEADER_ARG("Os=%p Iommu=%p", Os, Iommu);
+    gcmkHEADER();
 
     if (Iommu->domain && Iommu->device)
     {
@@ -148,11 +147,12 @@ gckIOMMU_Construct(
     OUT gckIOMMU * Iommu
     )
 {
-    gceSTATUS status = gcvSTATUS_OK;
+    gceSTATUS status;
     gckIOMMU iommu = gcvNULL;
     struct device *dev;
+    int ret;
 
-    gcmkHEADER_ARG("Os=%p", Os);
+    gcmkHEADER();
 
     dev = &Os->device->platform->device->dev;
 
@@ -165,6 +165,7 @@ gckIOMMU_Construct(
     if (!iommu->domain)
     {
         gcmkTRACE_ZONE(gcvLEVEL_INFO, gcvZONE_OS, "iommu_domain_alloc() fail");
+
         gcmkONERROR(gcvSTATUS_NOT_SUPPORTED);
     }
 
@@ -174,9 +175,13 @@ gckIOMMU_Construct(
     iommu_set_fault_handler(iommu->domain, _IOMMU_Fault_Handler);
 #endif
 
-    if (iommu_attach_device(iommu->domain, dev))
+    ret = iommu_attach_device(iommu->domain, dev);
+
+    if (ret)
     {
-        gcmkTRACE_ZONE(gcvLEVEL_INFO, gcvZONE_OS, "iommu_attach_device() fail");
+        gcmkTRACE_ZONE(
+            gcvLEVEL_INFO, gcvZONE_OS, "iommu_attach_device() fail %d", ret);
+
         gcmkONERROR(gcvSTATUS_NOT_SUPPORTED);
     }
 
@@ -186,11 +191,12 @@ gckIOMMU_Construct(
 
     *Iommu = iommu;
 
+    gcmkFOOTER_NO();
+    return gcvSTATUS_OK;
+
 OnError:
-    if (gcmIS_ERROR(status))
-    {
-        gckIOMMU_Destory(Os, iommu);
-    }
+
+    gckIOMMU_Destory(Os, iommu);
 
     gcmkFOOTER();
     return status;
@@ -204,19 +210,27 @@ gckIOMMU_Map(
     IN gctUINT32 Bytes
     )
 {
-    gceSTATUS status = gcvSTATUS_OK;
+    gceSTATUS status;
+    int ret;
 
     gcmkHEADER_ARG("DomainAddress=%#X, Physical=%#X, Bytes=%d",
                    DomainAddress, Physical, Bytes);
 
-    if (iommu_map(Iommu->domain, DomainAddress, Physical, Bytes, 0))
+    ret = iommu_map(Iommu->domain, DomainAddress, Physical, Bytes, 0);
+
+    if (ret)
     {
         gcmkONERROR(gcvSTATUS_NOT_SUPPORTED);
     }
 
+    gcmkFOOTER_NO();
+    return gcvSTATUS_OK;
+
 OnError:
+
     gcmkFOOTER();
     return status;
+
 }
 
 gceSTATUS

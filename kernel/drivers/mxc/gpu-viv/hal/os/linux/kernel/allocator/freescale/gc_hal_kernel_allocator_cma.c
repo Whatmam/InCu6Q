@@ -2,7 +2,7 @@
 *
 *    The MIT License (MIT)
 *
-*    Copyright (c) 2014 - 2019 Vivante Corporation
+*    Copyright (c) 2014 - 2018 Vivante Corporation
 *
 *    Permission is hereby granted, free of charge, to any person obtaining a
 *    copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,7 @@
 *
 *    The GPL License (GPL)
 *
-*    Copyright (C) 2014 - 2019 Vivante Corporation
+*    Copyright (C) 2014 - 2018 Vivante Corporation
 *
 *    This program is free software; you can redistribute it and/or
 *    modify it under the terms of the GNU General Public License
@@ -63,9 +63,6 @@
 #include <linux/dma-mapping.h>
 #include <linux/slab.h>
 #include <linux/platform_device.h>
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,16,0)
-#include <linux/dma-direct.h>
-#endif
 
 #define _GC_OBJ_ZONE    gcvZONE_OS
 
@@ -235,7 +232,8 @@ _CMAFSLGetSGT(
 #elif LINUX_VERSION_CODE < KERNEL_VERSION(3,13,0)
     page = phys_to_page(mdlPriv->physical);
 #else
-    page = phys_to_page(dma_to_phys(&Allocator->os->device->platform->device->dev, mdl_priv->physical));
+    //page = phys_to_page(dma_to_phys(&Allocator->os->device->platform->device->dev, mdl_priv->physical));
+    page = virt_to_page(mdl_priv->kvaddr);
 #endif
 
     for (i = 0; i < numPages; ++i)
@@ -441,7 +439,7 @@ _CMAFSLMapUser(
     up_write(&current->mm->mmap_sem);
 
 OnError:
-    if (gcmIS_ERROR(status) && userLogical && !IS_ERR(userLogical))
+    if (gcmIS_ERROR(status) && userLogical)
     {
         _CMAFSLUnmapUser(Allocator, Mdl, userLogical, Mdl->numPages * PAGE_SIZE);
     }
@@ -453,13 +451,11 @@ static gceSTATUS
 _CMAMapKernel(
     IN gckALLOCATOR Allocator,
     IN PLINUX_MDL Mdl,
-    IN gctSIZE_T Offset,
-    IN gctSIZE_T Bytes,
     OUT gctPOINTER *Logical
     )
 {
     struct mdl_cma_priv *mdl_priv=(struct mdl_cma_priv *)Mdl->priv;
-    *Logical = (uint8_t *)mdl_priv->kvaddr + Offset;
+    *Logical =mdl_priv->kvaddr;
     return gcvSTATUS_OK;
 }
 
@@ -479,7 +475,7 @@ _CMACache(
     IN PLINUX_MDL Mdl,
     IN gctSIZE_T Offset,
     IN gctPOINTER Logical,
-    IN gctSIZE_T Bytes,
+    IN gctUINT32 Bytes,
     IN gceCACHEOPERATION Operation
     )
 {
@@ -579,12 +575,9 @@ _CMAFSLAlloctorInit(
                           | gcvALLOC_FLAG_4GB_ADDR
 #endif
                           ;
+
 #if defined(CONFIG_ARM64)
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
-    Os->allocatorLimitMarker = (Os->device->baseAddress + totalram_pages() * PAGE_SIZE) > 0x100000000;
-#else
     Os->allocatorLimitMarker = (Os->device->baseAddress + totalram_pages * PAGE_SIZE) > 0x100000000;
-#endif
 #else
     Os->allocatorLimitMarker = gcvFALSE;
 #endif

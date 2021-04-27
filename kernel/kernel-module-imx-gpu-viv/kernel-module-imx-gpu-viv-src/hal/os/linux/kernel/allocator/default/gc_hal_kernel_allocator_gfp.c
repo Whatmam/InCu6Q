@@ -2,7 +2,7 @@
 *
 *    The MIT License (MIT)
 *
-*    Copyright (c) 2014 - 2020 Vivante Corporation
+*    Copyright (c) 2014 - 2018 Vivante Corporation
 *
 *    Permission is hereby granted, free of charge, to any person obtaining a
 *    copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,7 @@
 *
 *    The GPL License (GPL)
 *
-*    Copyright (C) 2014 - 2020 Vivante Corporation
+*    Copyright (C) 2014 - 2018 Vivante Corporation
 *
 *    This program is free software; you can redistribute it and/or
 *    modify it under the terms of the GNU General Public License
@@ -61,9 +61,7 @@
 #include <asm/atomic.h>
 #include <linux/dma-mapping.h>
 #include <linux/slab.h>
-#if defined(CONFIG_X86) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4,12,0))
-#include <asm/set_memory.h>
-#endif
+
 #include "gc_hal_kernel_platform.h"
 
 #define _GC_OBJ_ZONE    gcvZONE_OS
@@ -103,10 +101,6 @@ struct gfp_mdl_priv
         {
             /* Pointer to a array of pointers to page. */
             struct page **nonContiguousPages;
-
-            struct page **Pages1M;
-            int numPages1M;
-            int *isExact;
             struct sg_table sgt;
         };
     };
@@ -172,12 +166,12 @@ _GFPAllocatorDebugfsCleanup(
 static void
 _NonContiguousFree(
     IN struct page ** Pages,
-    IN gctSIZE_T NumPages
+    IN gctUINT32 NumPages
     )
 {
-    gctSIZE_T i;
+    gctINT i;
 
-    gcmkHEADER_ARG("Pages=%p, NumPages=%zx", Pages, NumPages);
+    gcmkHEADER_ARG("Pages=%p, NumPages=%u", Pages, NumPages);
 
     gcmkASSERT(Pages != gcvNULL);
 
@@ -198,29 +192,26 @@ _NonContiguousFree(
     gcmkFOOTER_NO();
 }
 
-static gceSTATUS
+static struct page **
 _NonContiguousAlloc(
-    IN struct gfp_mdl_priv *MdlPriv,
-    IN gctSIZE_T NumPages,
+    IN gctUINT32 NumPages,
     IN gctUINT32 Gfp
     )
 {
     struct page ** pages;
     struct page *p;
-    gctSIZE_T i, size;
+    gctINT i, size;
 
-    gcmkHEADER_ARG("NumPages=%zx", NumPages);
+    gcmkHEADER_ARG("NumPages=%u", NumPages);
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
-    if (NumPages > totalram_pages())
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 32)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 32)
     if (NumPages > totalram_pages)
 #else
     if (NumPages > num_physpages)
 #endif
     {
         gcmkFOOTER_NO();
-        return gcvSTATUS_INVALID_ARGUMENT;
+        return gcvNULL;
     }
 
     size = NumPages * sizeof(struct page *);
@@ -234,7 +225,7 @@ _NonContiguousAlloc(
         if (!pages)
         {
             gcmkFOOTER_NO();
-            return gcvSTATUS_OUT_OF_MEMORY;
+            return gcvNULL;
         }
     }
 
@@ -246,7 +237,7 @@ _NonContiguousAlloc(
         {
             _NonContiguousFree(pages, i);
             gcmkFOOTER_NO();
-            return gcvSTATUS_OUT_OF_MEMORY;
+            return gcvNULL;
         }
 
 #if gcdDISCRETE_PAGES
@@ -267,7 +258,7 @@ _NonContiguousAlloc(
                 {
                     _NonContiguousFree(pages, i);
                     gcmkFOOTER_NO();
-                    return gcvSTATUS_OUT_OF_MEMORY;
+                    return gcvNULL;
                 }
             }
         }
@@ -276,188 +267,8 @@ _NonContiguousAlloc(
         pages[i] = p;
     }
 
-    MdlPriv->contiguousPages = (struct page *)pages;
-
     gcmkFOOTER_ARG("pages=0x%X", pages);
-    return gcvSTATUS_OK;
-}
-
-static void
-_NonContiguous1MPagesFree(
-    IN struct gfp_mdl_priv *MdlPriv,
-    IN gctUINT32 NumPages1M
-    )
-{
-    gctINT i;
-
-    if (MdlPriv->Pages1M && MdlPriv->isExact)
-    {
-        for (i = 0; i < NumPages1M && MdlPriv->Pages1M[i]; i++)
-        {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 27)
-            if (MdlPriv->isExact[i] == gcvTRUE)
-            {
-                free_pages_exact(page_address(MdlPriv->Pages1M[i]), gcd1M_PAGE_SIZE);
-            }
-            else
-#endif
-            {
-                __free_pages(MdlPriv->Pages1M[i], get_order(gcd1M_PAGE_SIZE));
-            }
-        }
-    }
-
-    if (MdlPriv->Pages1M)
-    {
-        if (is_vmalloc_addr(MdlPriv->Pages1M))
-        {
-            vfree(MdlPriv->Pages1M);
-        }
-        else
-        {
-            kfree(MdlPriv->Pages1M);
-        }
-        MdlPriv->Pages1M = gcvNULL;
-    }
-
-    if (MdlPriv->isExact)
-    {
-         if (is_vmalloc_addr(MdlPriv->isExact))
-        {
-            vfree(MdlPriv->isExact);
-        }
-        else
-        {
-            kfree(MdlPriv->isExact);
-        }
-    }
-
-    if (MdlPriv->nonContiguousPages)
-    {
-        if (is_vmalloc_addr(MdlPriv->nonContiguousPages))
-        {
-            vfree(MdlPriv->nonContiguousPages);
-        }
-        else
-        {
-            kfree(MdlPriv->nonContiguousPages);
-        }
-        MdlPriv->nonContiguousPages = gcvNULL;
-    }
-}
-
-static gceSTATUS
-_NonContiguous1MPagesAlloc(
-    IN struct gfp_mdl_priv *MdlPriv,
-    IN gctSIZE_T *NumPages,
-    IN gctUINT32 Gfp
-    )
-{
-    gceSTATUS status;
-    size_t numPages1M, num, size;
-    struct page **pages;
-    struct page *page;
-    void *addr = NULL;
-    gctINT i, j;
-
-    MdlPriv->numPages1M = 0;
-
-    numPages1M = ((*NumPages << PAGE_SHIFT) + (gcd1M_PAGE_SIZE - 1)) >> gcd1M_PAGE_SHIFT;
-
-    *NumPages = (numPages1M << gcd1M_PAGE_SHIFT) >> PAGE_SHIFT;
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0)
-        if (*NumPages > totalram_pages())
-#elif LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 32)
-        if (*NumPages > totalram_pages)
-#else
-        if (*NumPages > num_physpages)
-#endif
-    {
-        return gcvSTATUS_INVALID_ARGUMENT;
-    }
-
-    num = gcd1M_PAGE_SIZE / PAGE_SIZE;
-
-    size = numPages1M * sizeof(struct page *);
-    MdlPriv->Pages1M = kmalloc(size, GFP_KERNEL | gcdNOWARN);
-    if (!MdlPriv->Pages1M)
-    {
-        MdlPriv->Pages1M = vmalloc(size);
-
-        if (!MdlPriv->Pages1M)
-        {
-            gcmkONERROR(gcvSTATUS_OUT_OF_MEMORY);
-        }
-    }
-
-    size = numPages1M * sizeof(int);
-    MdlPriv->isExact = kmalloc(size, GFP_KERNEL | gcdNOWARN);
-    if (!MdlPriv->isExact)
-    {
-        MdlPriv->isExact = vmalloc(size);
-        if (!MdlPriv->isExact)
-        {
-            gcmkONERROR(gcvSTATUS_OUT_OF_MEMORY);
-        }
-    }
-    memset(MdlPriv->isExact, 0, size);
-
-    size = *NumPages * sizeof(struct page *);
-    pages = kmalloc(size, GFP_KERNEL | gcdNOWARN);
-    if (!pages)
-    {
-        pages = vmalloc(size);
-        if (!pages)
-        {
-            gcmkONERROR(gcvSTATUS_OUT_OF_MEMORY);
-        }
-    }
-    MdlPriv->contiguousPages = (struct page *)pages;
-
-    for (i = 0; i < numPages1M; i++)
-    {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 27)
-        addr = alloc_pages_exact(gcd1M_PAGE_SIZE, (Gfp & ~__GFP_HIGHMEM) | __GFP_NORETRY);
-
-        MdlPriv->Pages1M[i] = addr ? virt_to_page(addr) : gcvNULL;
-        if (MdlPriv->Pages1M[i])
-        {
-            MdlPriv->isExact[i] = gcvTRUE;
-        }
-#endif
-
-        if (MdlPriv->Pages1M[i] == gcvNULL)
-        {
-            int order = get_order(gcd1M_PAGE_SIZE);
-
-            if (order >= MAX_ORDER)
-            {
-                gcmkONERROR(gcvSTATUS_OUT_OF_MEMORY);
-            }
-
-            MdlPriv->Pages1M[i] = alloc_pages(Gfp, order);
-        }
-
-        if (MdlPriv->Pages1M[i] == gcvNULL)
-        {
-            gcmkONERROR(gcvSTATUS_OUT_OF_MEMORY);
-        }
-
-        MdlPriv->numPages1M += 1;
-
-        for (j = 0; j < num; j++)
-        {
-            page = nth_page(MdlPriv->Pages1M[i], j);
-            pages[i * num + j] = page;
-        }
-    }
-
-    return gcvSTATUS_OK;
-OnError:
-    _NonContiguous1MPagesFree(MdlPriv, MdlPriv->numPages1M);
-
-    return status;
+    return pages;
 }
 
 /***************************************************************************\
@@ -472,10 +283,9 @@ _GFPAlloc(
     )
 {
     gceSTATUS status;
-    gctSIZE_T i = 0;
+    gctUINT i;
     gctBOOL contiguous = Flags & gcvALLOC_FLAG_CONTIGUOUS;
-    u32 normal_gfp = __GFP_HIGH | __GFP_ATOMIC | __GFP_NORETRY | gcdNOWARN;
-    u32 gfp = (contiguous ? normal_gfp : GFP_KERNEL) | __GFP_HIGHMEM | gcdNOWARN;
+    u32 gfp = (contiguous ? (__GFP_HIGH | __GFP_ATOMIC) : GFP_KERNEL) | __GFP_HIGHMEM | gcdNOWARN;
 
     struct gfp_alloc *priv = (struct gfp_alloc *)Allocator->privateData;
     struct gfp_mdl_priv *mdlPriv = gcvNULL;
@@ -522,15 +332,6 @@ _GFPAlloc(
 
 #endif
 
-    if ((Flags & gcvALLOC_FLAG_NON_CONTIGUOUS) && (Flags & gcvALLOC_FLAG_1M_PAGES))
-    {
-        Mdl->pageUnit1M = gcvTRUE;
-    }
-    else
-    {
-        Mdl->pageUnit1M = gcvFALSE;
-    }
-
     if (contiguous)
     {
         size_t bytes = NumPages << PAGE_SHIFT;
@@ -559,6 +360,7 @@ _GFPAlloc(
             }
 
             mdlPriv->contiguousPages = alloc_pages(gfp, order);
+
         }
 
         if (mdlPriv->contiguousPages == gcvNULL)
@@ -570,7 +372,7 @@ _GFPAlloc(
                 mdlPriv->contiguousPages, 0, NumPages * PAGE_SIZE,
                 DMA_FROM_DEVICE);
 
-        if (dma_mapping_error(galcore_device, mdlPriv->dma_addr))
+        if (!mdlPriv->dma_addr)
         {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 27)
             if (mdlPriv->exact)
@@ -598,18 +400,11 @@ _GFPAlloc(
     }
     else
     {
-        if (Mdl->pageUnit1M)
-        {
-            gcmkONERROR(_NonContiguous1MPagesAlloc(mdlPriv, &NumPages, gfp));
-        }
-        else
-        {
-            status = _NonContiguousAlloc(mdlPriv, NumPages, normal_gfp);
+        mdlPriv->nonContiguousPages = _NonContiguousAlloc(NumPages, gfp);
 
-            if (gcmIS_ERROR(status))
-            {
-                gcmkONERROR(_NonContiguousAlloc(mdlPriv, NumPages, gfp));
-            }
+        if (mdlPriv->nonContiguousPages == gcvNULL)
+        {
+            gcmkONERROR(gcvSTATUS_OUT_OF_MEMORY);
         }
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION (3,6,0) \
@@ -627,15 +422,7 @@ _GFPAlloc(
 #endif
         if (result < 0)
         {
-            if (Mdl->pageUnit1M)
-            {
-                _NonContiguous1MPagesFree(mdlPriv, mdlPriv->numPages1M);
-            }
-            else
-            {
-                _NonContiguousFree(mdlPriv->nonContiguousPages, NumPages);
-            }
-
+            _NonContiguousFree(mdlPriv->nonContiguousPages, NumPages);
             gcmkONERROR(gcvSTATUS_OUT_OF_MEMORY);
         }
 
@@ -644,14 +431,7 @@ _GFPAlloc(
 
         if (result != mdlPriv->sgt.nents)
         {
-            if (Mdl->pageUnit1M)
-            {
-                _NonContiguous1MPagesFree(mdlPriv, mdlPriv->numPages1M);
-            }
-            else
-            {
-                _NonContiguousFree(mdlPriv->nonContiguousPages, NumPages);
-            }
+            _NonContiguousFree(mdlPriv->nonContiguousPages, NumPages);
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION (3,6,0) \
     && (defined (ARCH_HAS_SG_CHAIN) || defined (CONFIG_ARCH_HAS_SG_CHAIN))
@@ -706,7 +486,6 @@ _GFPAlloc(
     atomic_add(high, &priv->high);
 
     Mdl->priv = mdlPriv;
-    Mdl->numPages = NumPages;
 
     gcmkFOOTER_NO();
     return gcvSTATUS_OK;
@@ -738,13 +517,13 @@ _GFPGetSGT(
 
     gceSTATUS status = gcvSTATUS_OK;
     gctSIZE_T offset = Offset & ~PAGE_MASK; /* Offset to the first page */
-    gctSIZE_T skipPages = Offset >> PAGE_SHIFT;     /* skipped pages */
-    gctSIZE_T numPages = (PAGE_ALIGN(Offset + Bytes) >> PAGE_SHIFT) - skipPages;
-    gctSIZE_T i;
+    gctINT skipPages = Offset >> PAGE_SHIFT;     /* skipped pages */
+    gctINT numPages = (PAGE_ALIGN(Offset + Bytes) >> PAGE_SHIFT) - skipPages;
+    gctINT i;
 
     gcmkASSERT(Offset + Bytes <= Mdl->numPages << PAGE_SHIFT);
 
-    if (mdlPriv->contiguous)
+    if (Mdl->contiguous)
     {
         pages = tmpPages = kmalloc(sizeof(struct page*) * numPages, GFP_KERNEL | gcdNOWARN);
         if (!pages)
@@ -798,22 +577,22 @@ _GFPFree(
     IN OUT PLINUX_MDL Mdl
     )
 {
-    gctSIZE_T i;
+    gctINT i;
     struct page * page;
     struct gfp_alloc *priv = (struct gfp_alloc *)Allocator->privateData;
     struct gfp_mdl_priv *mdlPriv = Mdl->priv;
     int low  = 0;
     int high = 0;
 
-    if (mdlPriv->contiguous)
+    if (Mdl->contiguous)
     {
         dma_unmap_page(galcore_device, mdlPriv->dma_addr,
-                Mdl->numPages << PAGE_SHIFT, DMA_FROM_DEVICE);
+                Mdl->numPages << PAGE_SHIFT, DMA_TO_DEVICE);
     }
     else
     {
         dma_unmap_sg(galcore_device, mdlPriv->sgt.sgl, mdlPriv->sgt.nents,
-                DMA_FROM_DEVICE);
+                DMA_TO_DEVICE);
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION (3,6,0) \
     && (defined (ARCH_HAS_SG_CHAIN) || defined (CONFIG_ARCH_HAS_SG_CHAIN))
@@ -825,7 +604,7 @@ _GFPFree(
 
     for (i = 0; i < Mdl->numPages; i++)
     {
-        if (mdlPriv->contiguous)
+        if (Mdl->contiguous)
         {
             page = nth_page(mdlPriv->contiguousPages, i);
         }
@@ -849,7 +628,7 @@ _GFPFree(
     atomic_sub(low, &priv->low);
     atomic_sub(high, &priv->high);
 
-    if (mdlPriv->contiguous)
+    if (Mdl->contiguous)
     {
 #if defined(CONFIG_X86)
         if (!PageHighMem(mdlPriv->contiguousPages))
@@ -875,14 +654,7 @@ _GFPFree(
         set_pages_array_wb(mdlPriv->nonContiguousPages, Mdl->numPages);
 #endif
 
-        if (Mdl->pageUnit1M)
-        {
-            _NonContiguous1MPagesFree(mdlPriv, mdlPriv->numPages1M);
-        }
-        else
-        {
-            _NonContiguousFree(mdlPriv->nonContiguousPages, Mdl->numPages);
-        }
+        _NonContiguousFree(mdlPriv->nonContiguousPages, Mdl->numPages);
     }
 
     kfree(Mdl->priv);
@@ -944,7 +716,7 @@ _GFPMmap(
     }
     else
     {
-        gctSIZE_T i;
+        gctUINT i;
         unsigned long start = vma->vm_start;
 
         for (i = 0; i < numPages; ++i)
@@ -1001,7 +773,7 @@ _GFPUnmapUser(
                 );
     }
 #else
-    down_write(&current_mm_mmap_sem);
+    down_write(&current->mm->mmap_sem);
     if (do_munmap(current->mm, (unsigned long)MdlMap->vmaAddr, Size) < 0)
     {
         gcmkTRACE_ZONE(
@@ -1010,7 +782,7 @@ _GFPUnmapUser(
                 __FUNCTION__, __LINE__
                 );
     }
-    up_write(&current_mm_mmap_sem);
+    up_write(&current->mm->mmap_sem);
 #endif
 
     MdlMap->vma = NULL;
@@ -1037,14 +809,14 @@ _GFPMapUser(
                     MAP_SHARED | MAP_NORESERVE,
                     0);
 #else
-    down_write(&current_mm_mmap_sem);
+    down_write(&current->mm->mmap_sem);
     userLogical = (gctPOINTER)do_mmap_pgoff(NULL,
                     0L,
                     Mdl->numPages * PAGE_SIZE,
                     PROT_READ | PROT_WRITE,
                     MAP_SHARED,
                     0);
-    up_write(&current_mm_mmap_sem);
+    up_write(&current->mm->mmap_sem);
 #endif
 
     gcmkTRACE_ZONE(
@@ -1068,8 +840,7 @@ _GFPMapUser(
         gcmkONERROR(gcvSTATUS_OUT_OF_MEMORY);
     }
 
-    down_write(&current_mm_mmap_sem);
-
+    down_write(&current->mm->mmap_sem);
     do
     {
         struct vm_area_struct *vma = find_vma(current->mm, (unsigned long)userLogical);
@@ -1089,8 +860,7 @@ _GFPMapUser(
         MdlMap->vma = vma;
     }
     while (gcvFALSE);
-
-    up_write(&current_mm_mmap_sem);
+    up_write(&current->mm->mmap_sem);
 
     if (gcmIS_SUCCESS(status))
     {
@@ -1111,30 +881,20 @@ static gceSTATUS
 _GFPMapKernel(
     IN gckALLOCATOR Allocator,
     IN PLINUX_MDL Mdl,
-    IN gctSIZE_T Offset,
-    IN gctSIZE_T Bytes,
     OUT gctPOINTER *Logical
     )
 {
     void *addr = 0;
-    gctSIZE_T numPages = Mdl->numPages;
+    gctINT numPages = Mdl->numPages;
     struct gfp_mdl_priv *mdlPriv = Mdl->priv;
-    unsigned long pgoff = (Offset >> PAGE_SHIFT);
+
     struct page ** pages;
     gctBOOL free = gcvFALSE;
     pgprot_t pgprot;
+    gctINT i;
 
-    if (Offset + Bytes > (numPages << PAGE_SHIFT))
+    if (Mdl->contiguous)
     {
-        return gcvSTATUS_INVALID_ARGUMENT;
-    }
-
-    numPages = ((Offset & ~PAGE_MASK) + Bytes + (PAGE_SIZE - 1)) >> PAGE_SHIFT;
-
-    if (mdlPriv->contiguous)
-    {
-        gctSIZE_T i;
-
         pages = kmalloc(sizeof(struct page *) * numPages, GFP_KERNEL | gcdNOWARN);
 
         if (!pages)
@@ -1144,14 +904,14 @@ _GFPMapKernel(
 
         for (i = 0; i < numPages; i++)
         {
-            pages[i] = nth_page(mdlPriv->contiguousPages, i + pgoff);
+            pages[i] = nth_page(mdlPriv->contiguousPages, i);
         }
 
         free = gcvTRUE;
     }
     else
     {
-        pages = &mdlPriv->nonContiguousPages[pgoff];
+        pages = mdlPriv->nonContiguousPages;
     }
 
     /* ioremap() can't work on system memory since 2.6.38. */
@@ -1177,8 +937,7 @@ _GFPMapKernel(
 
     if (addr)
     {
-        /* Append offset in page. */
-        *Logical = (uint8_t *)addr + (Offset & ~PAGE_MASK);
+        *Logical = addr;
         return gcvSTATUS_OK;
     }
     else
@@ -1194,7 +953,7 @@ _GFPUnmapKernel(
     IN gctPOINTER Logical
     )
 {
-    vunmap((void *)((uintptr_t)Logical & PAGE_MASK));
+    vunmap(Logical);
 
     return gcvSTATUS_OK;
 }
@@ -1205,15 +964,12 @@ _GFPCache(
     IN PLINUX_MDL Mdl,
     IN gctSIZE_T Offset,
     IN gctPOINTER Logical,
-    IN gctSIZE_T Bytes,
+    IN gctUINT32 Bytes,
     IN gceCACHEOPERATION Operation
     )
 {
     struct gfp_mdl_priv *mdlPriv = Mdl->priv;
     enum dma_data_direction dir;
-    dma_addr_t dma_addr = (mdlPriv->dma_addr + Offset) & PAGE_MASK;
-    gctSIZE_T bytes = (mdlPriv->dma_addr + Offset + Bytes) - dma_addr;
-    gctINT numPages = GetPageCount(bytes, 0);
 
     switch (Operation)
     {
@@ -1223,7 +979,7 @@ _GFPCache(
         if (mdlPriv->contiguous)
         {
             dma_sync_single_for_device(galcore_device,
-                    dma_addr, numPages << PAGE_SHIFT, dir);
+                    mdlPriv->dma_addr, Mdl->numPages << PAGE_SHIFT, dir);
         }
         else
         {
@@ -1238,7 +994,7 @@ _GFPCache(
         if (mdlPriv->contiguous)
         {
             dma_sync_single_for_device(galcore_device,
-                    dma_addr, numPages << PAGE_SHIFT, dir);
+                    mdlPriv->dma_addr, Mdl->numPages << PAGE_SHIFT, dir);
         }
         else
         {
@@ -1251,7 +1007,7 @@ _GFPCache(
         if (mdlPriv->contiguous)
         {
             dma_sync_single_for_cpu(galcore_device,
-                    dma_addr, numPages << PAGE_SHIFT, dir);
+                    mdlPriv->dma_addr, Mdl->numPages << PAGE_SHIFT, dir);
         }
         else
         {
@@ -1266,7 +1022,7 @@ _GFPCache(
         if (mdlPriv->contiguous)
         {
             dma_sync_single_for_cpu(galcore_device,
-                    dma_addr, numPages << PAGE_SHIFT, dir);
+                    mdlPriv->dma_addr, Mdl->numPages << PAGE_SHIFT, dir);
         }
         else
         {
@@ -1294,7 +1050,7 @@ _GFPPhysical(
     gctUINT32 offsetInPage = Offset & ~PAGE_MASK;
     gctUINT32 index = Offset / PAGE_SIZE;
 
-    if (mdlPriv->contiguous)
+    if (Mdl->contiguous)
     {
         *Physical = page_to_phys(nth_page(mdlPriv->contiguousPages, index));
     }
@@ -1374,10 +1130,9 @@ _GFPAlloctorInit(
                           | gcvALLOC_FLAG_MEMLIMIT
                           | gcvALLOC_FLAG_ALLOC_ON_FAULT
                           | gcvALLOC_FLAG_DMABUF_EXPORTABLE
-#if (defined(CONFIG_ZONE_DMA32) || defined(CONFIG_ZONE_DMA)) && LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,37)
+#if defined(CONFIG_ZONE_DMA32) && LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,37)
                           | gcvALLOC_FLAG_4GB_ADDR
 #endif
-                          | gcvALLOC_FLAG_1M_PAGES
                           ;
 
 #if defined(gcdEMULATE_SECURE_ALLOCATOR)

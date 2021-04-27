@@ -2,7 +2,7 @@
 *
 *    The MIT License (MIT)
 *
-*    Copyright (c) 2014 - 2020 Vivante Corporation
+*    Copyright (c) 2014 - 2018 Vivante Corporation
 *
 *    Permission is hereby granted, free of charge, to any person obtaining a
 *    copy of this software and associated documentation files (the "Software"),
@@ -26,7 +26,7 @@
 *
 *    The GPL License (GPL)
 *
-*    Copyright (C) 2014 - 2020 Vivante Corporation
+*    Copyright (C) 2014 - 2018 Vivante Corporation
 *
 *    This program is free software; you can redistribute it and/or
 *    modify it under the terms of the GNU General Public License
@@ -99,10 +99,10 @@ gpu3d_allocate_secure_mem(
 
     memset(shm, 0, sizeof(TEEC_SharedMemory));
 
-    status = gckOS_AllocatePagedMemory(
+    status = gckOS_AllocatePagedMemoryEx(
                 Os,
                 gcvALLOC_FLAG_SECURITY,
-                &bytes,
+                bytes,
                 gcvNULL,
                 (gctPHYS_ADDR *)&handle);
 
@@ -112,7 +112,7 @@ gpu3d_allocate_secure_mem(
          return NULL;
     }
 
-    status = gckOS_GetPhysicalFromHandle(
+    status = gckOS_PhysicalToPhysicalAddress(
                 Os,
                 handle,
                 0,

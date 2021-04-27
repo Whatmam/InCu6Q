@@ -3261,7 +3261,7 @@ CONFIG_MMC_CQHCI=y
 #
 # MXC Vivante GPU support
 #
-CONFIG_MXC_GPU_VIV=m
+CONFIG_MXC_GPU_VIV=y
 # CONFIG_MXC_SIM is not set
 
 #
