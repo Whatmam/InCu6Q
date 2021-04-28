@@ -1,9 +1,0 @@
-#!/bin/sh
-# TODO: initialize Modules
-modprobe galcore
-modprobe imx-sdma
-echo 0 > /sys/class/graphics/fb0/blank
-
-        echo "########################################################################"
-        echo "################### InCu6Q Filesystem Version v0.0.1 ###################"
-        echo "########################################################################"
