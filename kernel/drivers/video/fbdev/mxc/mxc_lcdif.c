@@ -54,7 +54,7 @@ static struct fb_videomode lcdif_modedb[] = {
 	FB_VMODE_NONINTERLACED,
 	0,},
 	{
-	"AT070TN94-WVGA", 60, 800, 480, 29850, 46, 190, 23, 12, 20, 10,
+	"AT070TN94-WVGA", 60, 800, 480, 37879, 46, 16, 23, 7, 1, 1,
 	FB_SYNC_CLK_LAT_FALL,
 	FB_VMODE_NONINTERLACED,
 	0,},
