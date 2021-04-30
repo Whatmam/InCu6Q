@@ -887,6 +887,13 @@ const void * __init of_flat_dt_match_machine(const void *default_match,
 	}
 
 	pr_info("Machine model: %s\n", of_flat_dt_get_machine_name());
+	char * dt_release_version = of_get_flat_dt_prop(dt_root, "device_tree_ver", NULL);
+
+    pr_info("########################################################################\n");
+    pr_info("########################## Kernel Version v0.0.0 #######################\n");
+	if(dt_release_version)
+	pr_info("###################         DTB   Version %s #######################\n", dt_release_version);
+    pr_info("########################################################################\n");
 
 	return best_data;
 }
