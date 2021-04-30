@@ -3588,6 +3588,9 @@ static int mxcfb_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Error %d on creating file for disp "
 				    " device propety\n", ret);
 
+	fb_prepare_logo(fbi, 0);
+	fb_show_logo(fbi, 0);
+
 	return 0;
 
 mxcfb_setupoverlay_failed:
