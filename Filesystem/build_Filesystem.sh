@@ -13,4 +13,4 @@ cd buildroot-2020.02.10
 
 make clean
 make imx6_incu6_defconfig
-make all -j12
+make all
