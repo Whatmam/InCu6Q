@@ -1495,7 +1495,7 @@ state.wm8960audio {
 	}
 	control.4 {
 		iface MIXER
-		name 'Right Input Boost Mixer RINPUT3 Volume'
+		name 'Left Input Boost Mixer LINPUT3 Volume'
 		value 0
 		comment {
 			access 'read write'
@@ -1509,7 +1509,7 @@ state.wm8960audio {
 	}
 	control.5 {
 		iface MIXER
-		name 'Right Input Boost Mixer RINPUT2 Volume'
+		name 'Left Input Boost Mixer LINPUT2 Volume'
 		value 0
 		comment {
 			access 'read write'
@@ -1523,7 +1523,7 @@ state.wm8960audio {
 	}
 	control.6 {
 		iface MIXER
-		name 'Left Input Boost Mixer LINPUT3 Volume'
+		name 'Right Input Boost Mixer RINPUT3 Volume'
 		value 0
 		comment {
 			access 'read write'
@@ -1537,7 +1537,7 @@ state.wm8960audio {
 	}
 	control.7 {
 		iface MIXER
-		name 'Left Input Boost Mixer LINPUT2 Volume'
+		name 'Right Input Boost Mixer RINPUT2 Volume'
 		value 0
 		comment {
 			access 'read write'
@@ -1580,8 +1580,8 @@ state.wm8960audio {
 	control.10 {
 		iface MIXER
 		name 'Playback Volume'
-		value.0 235
-		value.1 235
+		value.0 255
+		value.1 255
 		comment {
 			access 'read write'
 			type INTEGER
@@ -1589,15 +1589,15 @@ state.wm8960audio {
 			range '0 - 255'
 			dbmin -9999999
 			dbmax 0
-			dbvalue.0 -1000
-			dbvalue.1 -1000
+			dbvalue.0 0
+			dbvalue.1 0
 		}
 	}
 	control.11 {
 		iface MIXER
 		name 'Headphone Playback Volume'
-		value.0 101
-		value.1 101
+		value.0 0
+		value.1 0
 		comment {
 			access 'read write'
 			type INTEGER
@@ -1605,8 +1605,8 @@ state.wm8960audio {
 			range '0 - 127'
 			dbmin -9999999
 			dbmax 600
-			dbvalue.0 -2000
-			dbvalue.1 -2000
+			dbvalue.0 -9999999
+			dbvalue.1 -9999999
 		}
 	}
 	control.12 {
@@ -1623,8 +1623,8 @@ state.wm8960audio {
 	control.13 {
 		iface MIXER
 		name 'Speaker Playback Volume'
-		value.0 110
-		value.1 110
+		value.0 127
+		value.1 127
 		comment {
 			access 'read write'
 			type INTEGER
@@ -1632,8 +1632,8 @@ state.wm8960audio {
 			range '0 - 127'
 			dbmin -9999999
 			dbmax 600
-			dbvalue.0 -1100
-			dbvalue.1 -1100
+			dbvalue.0 600
+			dbvalue.1 600
 		}
 	}
 	control.14 {
@@ -1973,17 +1973,19 @@ state.wm8960audio {
 	}
 	control.42 {
 		iface MIXER
-		name 'Mono Output Mixer Left Switch'
-		value false
+		name 'DAC Mono Mix'
+		value Stereo
 		comment {
 			access 'read write'
-			type BOOLEAN
+			type ENUMERATED
 			count 1
+			item.0 Stereo
+			item.1 Mono
 		}
 	}
 	control.43 {
 		iface MIXER
-		name 'Mono Output Mixer Right Switch'
+		name 'Left Boost Mixer LINPUT2 Switch'
 		value false
 		comment {
 			access 'read write'
@@ -1993,8 +1995,8 @@ state.wm8960audio {
 	}
 	control.44 {
 		iface MIXER
-		name 'Right Output Mixer PCM Playback Switch'
-		value true
+		name 'Left Boost Mixer LINPUT3 Switch'
+		value false
 		comment {
 			access 'read write'
 			type BOOLEAN
@@ -2003,8 +2005,8 @@ state.wm8960audio {
 	}
 	control.45 {
 		iface MIXER
-		name 'Right Output Mixer RINPUT3 Switch'
-		value false
+		name 'Left Boost Mixer LINPUT1 Switch'
+		value true
 		comment {
 			access 'read write'
 			type BOOLEAN
@@ -2013,7 +2015,7 @@ state.wm8960audio {
 	}
 	control.46 {
 		iface MIXER
-		name 'Right Output Mixer Boost Bypass Switch'
+		name 'Right Boost Mixer RINPUT2 Switch'
 		value false
 		comment {
 			access 'read write'
@@ -2023,8 +2025,8 @@ state.wm8960audio {
 	}
 	control.47 {
 		iface MIXER
-		name 'Left Output Mixer PCM Playback Switch'
-		value true
+		name 'Right Boost Mixer RINPUT3 Switch'
+		value false
 		comment {
 			access 'read write'
 			type BOOLEAN
@@ -2033,7 +2035,7 @@ state.wm8960audio {
 	}
 	control.48 {
 		iface MIXER
-		name 'Left Output Mixer LINPUT3 Switch'
+		name 'Right Boost Mixer RINPUT1 Switch'
 		value false
 		comment {
 			access 'read write'
@@ -2043,8 +2045,8 @@ state.wm8960audio {
 	}
 	control.49 {
 		iface MIXER
-		name 'Left Output Mixer Boost Bypass Switch'
-		value false
+		name 'Left Input Mixer Boost Switch'
+		value true
 		comment {
 			access 'read write'
 			type BOOLEAN
@@ -2063,7 +2065,7 @@ state.wm8960audio {
 	}
 	control.51 {
 		iface MIXER
-		name 'Left Input Mixer Boost Switch'
+		name 'Left Output Mixer PCM Playback Switch'
 		value true
 		comment {
 			access 'read write'
@@ -2073,7 +2075,7 @@ state.wm8960audio {
 	}
 	control.52 {
 		iface MIXER
-		name 'Right Boost Mixer RINPUT2 Switch'
+		name 'Left Output Mixer LINPUT3 Switch'
 		value false
 		comment {
 			access 'read write'
@@ -2083,7 +2085,7 @@ state.wm8960audio {
 	}
 	control.53 {
 		iface MIXER
-		name 'Right Boost Mixer RINPUT3 Switch'
+		name 'Left Output Mixer Boost Bypass Switch'
 		value false
 		comment {
 			access 'read write'
@@ -2093,8 +2095,8 @@ state.wm8960audio {
 	}
 	control.54 {
 		iface MIXER
-		name 'Right Boost Mixer RINPUT1 Switch'
-		value false
+		name 'Right Output Mixer PCM Playback Switch'
+		value true
 		comment {
 			access 'read write'
 			type BOOLEAN
@@ -2103,7 +2105,7 @@ state.wm8960audio {
 	}
 	control.55 {
 		iface MIXER
-		name 'Left Boost Mixer LINPUT2 Switch'
+		name 'Right Output Mixer RINPUT3 Switch'
 		value false
 		comment {
 			access 'read write'
@@ -2113,7 +2115,7 @@ state.wm8960audio {
 	}
 	control.56 {
 		iface MIXER
-		name 'Left Boost Mixer LINPUT3 Switch'
+		name 'Right Output Mixer Boost Bypass Switch'
 		value false
 		comment {
 			access 'read write'
@@ -2123,8 +2125,8 @@ state.wm8960audio {
 	}
 	control.57 {
 		iface MIXER
-		name 'Left Boost Mixer LINPUT1 Switch'
-		value true
+		name 'Mono Output Mixer Left Switch'
+		value false
 		comment {
 			access 'read write'
 			type BOOLEAN
@@ -2132,11 +2134,11 @@ state.wm8960audio {
 		}
 	}
 	control.58 {
-		iface CARD
-		name 'Headphone Jack'
-		value true
+		iface MIXER
+		name 'Mono Output Mixer Right Switch'
+		value false
 		comment {
-			access read
+			access 'read write'
 			type BOOLEAN
 			count 1
 		}
