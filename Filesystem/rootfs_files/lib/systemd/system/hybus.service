@@ -1,0 +1,11 @@
+[Unit]
+Description=Hybus Board Configuration
+After=systemd-user-sessions.service
+ConditionPathExists=/etc/initialize_script.sh
+
+[Service]
+ExecStart=/etc/initialize_script.sh
+
+[Install]
+WantedBy=multi-user.target
+
