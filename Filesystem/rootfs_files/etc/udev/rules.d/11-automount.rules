@@ -1,0 +1,4 @@
+ACTION=="add",KERNEL=="sd[a-z][1-9]",RUN+="/etc/udev/plug_flash_drive.sh %k"
+ACTION=="remove",KERNEL=="sd[a-z][1-9]",RUN+="/etc/udev/unplug_flash_drive.sh %k"
+ACTION=="add",KERNEL=="mmcblk[2-9]p[1-9]",RUN+="/etc/udev/plug_flash_drive.sh %k"
+ACTION=="remove",KERNEL=="mmcblk[2-9]p[1-9]",RUN+="/etc/udev/unplug_flash_drive.sh %k"
