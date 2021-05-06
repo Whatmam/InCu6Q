@@ -30,13 +30,17 @@ make
 cp -vrfp  v4l2-framebuffer ../../Filesystem/rootfs_files/home/root/Test/
 make clean
 
+cd ../ethernet_test
+make
+cp -vrfp  ethernet_test ../../Filesystem/rootfs_files/home/root/Test/
+make clean
+
 cd ..
 
-
-#sd_test.sh
-#cd uart_test
-#usb_test.sh
-#cd ethernet_test
+cp sd_test.sh ../Filesystem/rootfs_files/home/root/Test/
+cp usb_test.sh ../Filesystem/rootfs_files/home/root/Test/
+cp uart_total.sh ../Filesystem/rootfs_files/home/root/Test/
 cp gst_video_fb.sh ../Filesystem/rootfs_files/home/root/Test/
 cp lcd_test.sh ../Filesystem/rootfs_files/home/root/Test/
-#cp rtc_test.sh ../Filesystem/rootfs_files/home/root/Test/
+cp rtc_test.sh ../Filesystem/rootfs_files/home/root/Test/
+cp total_test/test_dialog ../Filesystem/rootfs_files/home/root/Test/

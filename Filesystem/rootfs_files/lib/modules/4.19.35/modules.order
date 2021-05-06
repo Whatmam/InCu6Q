@@ -23,7 +23,6 @@ kernel/drivers/i2c/algos/i2c-algo-pcf.ko
 kernel/drivers/i2c/algos/i2c-algo-pca.ko
 kernel/drivers/media/platform/mxc/capture/mx6s_capture.ko
 kernel/drivers/media/platform/mxc/capture/mxc_mipi_csi.ko
-kernel/drivers/mxc/gpu-viv/galcore.ko
 kernel/drivers/crypto/virtio/virtio_crypto.ko
 kernel/drivers/rpmsg/imx_rpmsg_pingpong.ko
 kernel/drivers/rpmsg/imx_rpmsg_tty.ko

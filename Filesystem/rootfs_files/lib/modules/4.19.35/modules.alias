@@ -2242,8 +2242,4 @@ alias of:N*T*Cfsl,imx8mm-mipi-csiC* mxc_mipi_csi
 alias of:N*T*Cfsl,imx8mm-mipi-csi mxc_mipi_csi
 alias of:N*T*Cfsl,imx7d-mipi-csiC* mxc_mipi_csi
 alias of:N*T*Cfsl,imx7d-mipi-csi mxc_mipi_csi
-alias of:N*T*Cfsl,imx6q-gpuC* galcore
-alias of:N*T*Cfsl,imx6q-gpu galcore
-alias of:N*T*Cfsl,imx8-gpu-ssC* galcore
-alias of:N*T*Cfsl,imx8-gpu-ss galcore
 alias virtio:d00000014v* virtio_crypto

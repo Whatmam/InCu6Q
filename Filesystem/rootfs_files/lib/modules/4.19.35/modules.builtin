@@ -225,6 +225,7 @@ kernel/drivers/mmc/host/sdhci.ko
 kernel/drivers/mmc/host/sdhci-pltfm.ko
 kernel/drivers/mmc/host/sdhci-esdhc-imx.ko
 kernel/drivers/mmc/host/cqhci.ko
+kernel/drivers/mxc/gpu-viv/galcore.ko
 kernel/drivers/mxc/ipu3/prg.ko
 kernel/drivers/mxc/ipu3/pre.ko
 kernel/drivers/mxc/mlb/mxc_mlb.ko

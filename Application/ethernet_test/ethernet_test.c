@@ -17,15 +17,15 @@ int ping_test(char * dest)
 		printf("Failed to run ping command\n");
 	}
 	while (fgets(path, sizeof(path)-1, fp) != NULL) {
-		strcpy(&result_string[i], path);
+				strcpy(&result_string[i], path);
 		i += strlen(path);
 		printf("%s", path);
 	}
 	pclose(fp);
+		
 
 
-
-	if(strstr(result_string, "5 packets transmitted, 5 received, 0% packet loss"))
+	if(strstr(result_string, "5 packets transmitted, 5 packets received, 0% packet loss"))
 	{
 		printf("====================================================\n");
 		printf("         [Success] Ethernet Ping 5c Test !!\n");
@@ -65,7 +65,7 @@ int iperf_test(char * dest)
 	}
 	
 
-	if(result_str2 !=NULL)
+	if(path !=NULL)
 	{
 		result_str2 = strstr(result_string, "0.00-10.00");
 		strcpy(path, result_str2);
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 	char target_ip[16];
 	if(argc < 2)
 	{
-		printf("Usage : ./buzzer_test [CMD (ping/iperf)]\n");
+		printf("Usage : ./ethernet_test [CMD (ping/iperf)]\n");
 		return 0;
 	}
 
@@ -119,12 +119,12 @@ int main(int argc, char* argv[])
 		if(!strcmp("ping", argv[i]))
 		{
 			func_case = 1;
-			strcpy(target_ip, "192.168.0.1");
+			strcpy(target_ip, "192.168.10.1");
 		}	
 		else if(!strcmp("iperf", argv[i]))
 		{
 			func_case = 2;
-			strcpy(target_ip, "192.168.0.2");
+			strcpy(target_ip, "192.168.10.2");
 		}
 		else if(!strcmp("-i", argv[i]))
 		{
@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
 	}
 	if( func_case == 0 )	
 	{
-		printf("Usage : ./buzzer_test [CMD (ping/iperf)]\n");
+		printf("Usage : ./ethernet_test [CMD (ping/iperf)]\n");
 		return 0;
 	}
 

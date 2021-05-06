@@ -74,7 +74,7 @@ int main(int argc, char ** argv){
 	{
 		printf("./uart_test [uart_num] [baud_rate]\n");
 		printf("Please input ttymxc number\n");
-		printf("ex) 0 1 3 4\n");
+		printf("ex) 1 2 3 4\n");
 		return -1;
 	}
 	strcat(opendev, argv[1]);
