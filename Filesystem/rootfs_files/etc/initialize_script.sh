@@ -7,3 +7,6 @@ if [ -z "$lcd_cmd" ]; then
 else
 	cp -rfp /etc/7inch_pointcal /etc/pointercal
 fi
+
+#hw clock -> system clock
+hwclock -s
