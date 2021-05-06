@@ -4,7 +4,7 @@ make
 cp -vrfp  adc_test ../../Filesystem/rootfs_files/home/root/Test/
 make clean
 
-cd bl_ctrl
+cd ../bl_ctrl
 make
 cp -vrfp  bl_ctrl ../../Filesystem/rootfs_files/home/root/Test/
 make clean
