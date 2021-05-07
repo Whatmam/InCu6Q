@@ -9,22 +9,24 @@
 #include "imx6qdl-JW-incu6.dtsi"
 
 / {
-	compatible = "fsl,imx6q-jw-rgb", "fsl,imx6q";
+        model = "Hybus i.MX6 Quad InCu6Q Board (RGB LCD)";
+        compatible = "fsl,imx6q-jw-rgb", "fsl,imx6q";
+        display_type = <7>;
 
-	lcd: lcd@0 {
+        lcd: lcd@0 {
         status = "okay";
     };
 };
 
 &ldb {
     status = "disabled";
-	lvds-channel@0 {
+        lvds-channel@0 {
         status = "disabled";
-	};
+        };
 
-	lvds-channel@1 {
+        lvds-channel@1 {
         status = "disabled";
-	};
+        };
 };
 
 &lcd {
@@ -32,15 +34,14 @@
 };
 
 &mxcfb1 {
-	disp_dev = "lcd";
+        disp_dev = "lcd";
     mode_str ="AT070TN94-WVGA";
     default_ifmt = "RGB24";
     status = "okay";
 };
 
 &mxcfb2 {
-	disp_dev = "ldb";
+        disp_dev = "ldb";
     default_ifmt = "RGB666";
     status = "disabled";
 };
-
