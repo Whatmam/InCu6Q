@@ -11,7 +11,8 @@ make clean
 
 cd ../gpio_test
 make
-cp -vrfp  gpio_test ../../Filesystem/rootfs_files/home/root/Test/
+cp -vrfp  gpio_driver_test ../../Filesystem/rootfs_files/home/root/Test/
+cp -vrfp  gpio_sysfs_test ../../Filesystem/rootfs_files/home/root/Test/
 make clean
 
 cd ../uart_test

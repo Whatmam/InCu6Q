@@ -62,6 +62,8 @@ struct ioctl_info{
 struct gpio_data gpio_buf_data;
 static struct ioctl_info info;
 
+struct class *class;
+struct device *dev;
 
 ssize_t gpio_jw_read(struct file *f, char __user *data, size_t size, loff_t *fops)
 {
@@ -343,16 +345,14 @@ static struct platform_driver gpio_jw_driver = {
         .of_match_table = of_match_ptr(gpio_jw_match),
     },
 };
-module_platform_driver(gpio_jw_driver);
+//module_platform_driver(gpio_jw_driver);
 
-int __init gpio_jw_device_init(void)
+static int __init gpio_jw_device_init(void)
 {
     int ret = 0;
-    struct class *class;
-    struct device *dev;
 
     printk("%s\n", __func__);
-    //ret = platform_driver_register(&gpio_jw_driver);
+    ret = platform_driver_register(&gpio_jw_driver);
             
     if (ret < 0)
         printk("platform driver register FAIL ret=%d\r\n", ret);
@@ -368,10 +368,32 @@ int __init gpio_jw_device_init(void)
     return 0;
 }
 
-void __exit gpio_jw_device_exit(void)
+static void __exit gpio_jw_device_exit(void)
 {
+    int i;
+    
     platform_driver_unregister(&gpio_jw_driver);
+    unregister_chrdev(200, DEVICE_NAME);
+    device_destroy(class,MKDEV(200, 0));
+    class_destroy(class);
+
+    for(i=80;i<=84;i++)
+        gpio_free(i);
+    for(i=148;i<=155;i++)
+        gpio_free(i);
+    for(i=160;i<=163;i++)
+        gpio_free(i);
+
+    gpio_free(110);
+    gpio_free(111);
+    gpio_free(116);
+
+    gpio_free(200);
+    gpio_free(204);
 }
 
 module_init(gpio_jw_device_init);
 module_exit(gpio_jw_device_exit);
+
+MODULE_LICENSE("GPL");
+
