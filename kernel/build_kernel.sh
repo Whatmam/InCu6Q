@@ -18,6 +18,8 @@ cp -vrfp zImage ../i.MX6_MFG_Tools_JW/Profiles/Linux/OS\ Firmware/files/
 cp -vrfp arch/arm/boot/dts/imx6q-JW-incu6-rgb.dtb ./
 cp -vrfp arch/arm/boot/dts/imx6q-JW-incu6-lvds.dtb ./
 cp -vrfp *.dtb ../i.MX6_MFG_Tools_JW/Profiles/Linux/OS\ Firmware/files/
+rm -rf ../Filesystem/rootfs_files/lib/modules/4.19.35/source
+rm -rf ../Filesystem/rootfs_files/lib/modules/4.19.35/build
 
 export ARCH=arm
 export CROSS_COMPILE='../Toolchain/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-'
