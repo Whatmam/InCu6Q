@@ -12,6 +12,8 @@
 #include <linux/linux_logo.h>
 #include <linux/stddef.h>
 #include <linux/module.h>
+#include <linux/of_fdt.h>
+#include <linux/of_platform.h>
 
 #ifdef CONFIG_M68K
 #include <asm/setup.h>
@@ -98,6 +100,24 @@ const struct linux_logo * __ref fb_find_logo(int depth)
 #ifdef CONFIG_LOGO_SUPERH_CLUT224
 		/* SuperH Linux logo */
 		logo = &logo_superh_clut224;
+#endif
+#ifdef CONFIG_LOGO_JW_CLUT224
+		u32 display_num;
+		int len;
+		unsigned long dt_root;
+		const __be32 *dt_display_type = 0;
+		dt_root = of_get_flat_dt_root();
+		dt_display_type =
+			of_get_flat_dt_prop(dt_root, "display_type", &len);
+		display_num = of_read_number(dt_display_type, len / 4);
+		//printk("Jang dt_display_type : %u inch\n", display_num);
+		if (display_num == 7) {
+			logo = &logo_jw_7_clut224;
+		} else if (display_num == 10) {
+			logo = &logo_jw_10_clut224;
+		} else {
+			printk("Logo initialize Error!!!\n");
+		}
 #endif
 	}
 	return logo;
