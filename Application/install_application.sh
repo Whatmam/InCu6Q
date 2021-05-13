@@ -20,6 +20,12 @@ make
 cp -vrfp  uart_test ../../Filesystem/rootfs_files/home/root/Test/
 make clean
 
+cd ../uart_spo2_test
+make
+cp -vrfp  uart_spo2_test ../../Filesystem/rootfs_files/home/root/Test/
+cp -vrfp  uart_spo2_sender ../../Filesystem/rootfs_files/home/root/Test/
+make clean
+
 cd ../mk_raw_image
 make
 cp -vrfp mk_raw_image ../../Filesystem/rootfs_files/home/root/Test/
