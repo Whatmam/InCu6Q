@@ -30,6 +30,29 @@
 #include <linux/platform_data/tsc2007.h>
 #include "tsc2007.h"
 
+void Quick_Sort(int a[], int n)
+{
+    int v, i, j;
+
+    if (n > 1){
+        v = a[n - 1];
+        i = -1;
+        j = n - 1;
+
+        while (1){
+            while (a[++i] < v);
+            while (a[--j] > v);
+            if (i >= j) break;
+			swap(a[i],a[j]);
+        }
+		swap(a[i],a[n-1]);
+
+        Quick_Sort(a, i);
+        Quick_Sort(a + i + 1, n - i - 1);
+    }
+}
+
+
 int tsc2007_xfer(struct tsc2007 *tsc, u8 cmd)
 {
 	s32 data;
@@ -54,6 +77,30 @@ int tsc2007_xfer(struct tsc2007 *tsc, u8 cmd)
 
 static void tsc2007_read_values(struct tsc2007 *tsc, struct ts_event *tc)
 {
+#if 1
+	int count =3;
+	int i, xx[count], yy[count], zz1[count], zz2[count];
+    for (i = 0; i < count; i++)
+    {
+        yy[i] = tsc2007_xfer(tsc, READ_Y);
+        xx[i] = tsc2007_xfer(tsc, READ_X);
+        zz1[i] = tsc2007_xfer(tsc, READ_Z1);
+        zz2[i] = tsc2007_xfer(tsc, READ_Z2);
+    }
+    Quick_Sort(xx, count);
+	printk("[ %d %d %d ]", xx[0],xx[1],xx[2]);
+    Quick_Sort(yy, count);
+    Quick_Sort(zz1, count);
+    Quick_Sort(zz2, count);
+
+    tc->y = yy[count/2];
+    tc->x = xx[count/2];
+    tc->z1 = zz1[count/2];
+    tc->z2 = zz2[count/2];
+
+	/* Prepare for next touch reading - power down ADC, enable PENIRQ */
+	tsc2007_xfer(tsc, PWRDOWN);
+#else
 	/* y- still on; turn on only y+ (and ADC) */
 	tc->y = tsc2007_xfer(tsc, READ_Y);
 
@@ -66,6 +113,7 @@ static void tsc2007_read_values(struct tsc2007 *tsc, struct ts_event *tc)
 
 	/* Prepare for next touch reading - power down ADC, enable PENIRQ */
 	tsc2007_xfer(tsc, PWRDOWN);
+#endif
 }
 
 u32 tsc2007_calculate_resistance(struct tsc2007 *tsc, struct ts_event *tc)
@@ -117,14 +165,18 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
 	struct ts_event tc;
 	u32 rt;
 
-	while (!ts->stopped && tsc2007_is_pen_down(ts)) {
-
+	//while (!ts->stopped && tsc2007_is_pen_down(ts)) {
+		while (tsc2007_is_pen_down(ts)) {
 		/* pen is down, continue with the measurement */
 
 		mutex_lock(&ts->mlock);
 		tsc2007_read_values(ts, &tc);
 		mutex_unlock(&ts->mlock);
 
+		if(tc.z1 <= 0 || tc.y <= 0 )
+		{
+			continue;
+		}
 		rt = tsc2007_calculate_resistance(ts, &tc);
 
 		if (!rt && !ts->get_pendown_state) {
@@ -135,21 +187,23 @@ static irqreturn_t tsc2007_soft_irq(int irq, void *handle)
 			 */
 			break;
 		}
-
+		
 		if (rt <= ts->max_rt) {
-			dev_dbg(&ts->client->dev,
+						dev_dbg(&ts->client->dev,
 				"DOWN point(%4d,%4d), resistance (%4u)\n",
 				tc.x, tc.y, rt);
 
 			rt = ts->max_rt - rt;
 
-			input_report_key(input, BTN_TOUCH, 1);
-			input_report_abs(input, ABS_X, tc.x);
-			input_report_abs(input, ABS_Y, tc.y);
-			input_report_abs(input, ABS_PRESSURE, rt);
+			if(rt >3400 && rt <MAX_12BIT)
+			{
+				input_report_key(input, BTN_TOUCH, 1);
+				input_report_abs(input, ABS_X, tc.x);
+				input_report_abs(input, ABS_Y, tc.y);
+				input_report_abs(input, ABS_PRESSURE, rt);
 
-			input_sync(input);
-
+				input_sync(input);
+			}
 		} else {
 			/*
 			 * Sample found inconsistent by debouncing or pressure is

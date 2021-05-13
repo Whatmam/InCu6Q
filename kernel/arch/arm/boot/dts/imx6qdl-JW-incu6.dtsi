@@ -238,7 +238,7 @@
 		interrupt-parent = <&gpio2>;
 		interrupts = <8 IRQ_TYPE_EDGE_FALLING>; /* TSP_nINT */
 		gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;
-		ti,x-plate-ohms = <600>;
+		ti,x-plate-ohms = <400>;
 		status = "okay";
 	};
 
