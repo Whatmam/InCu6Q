@@ -849,12 +849,13 @@ int check_load_fdt(void)
 	if (switch_value == 2)
 	{
 		strcat(fdtname, "rgb.dtb");
-		strcat(mmcargs, " video=mxcfb0:dev=lcd,if=RGB24");
+		strcat(mmcargs, " video=mxcfb0:dev=lcd,AT070TN94-WVGA,if=RGB24");
 	}
 	else
 	{
 		strcat(fdtname, "lvds.dtb");
-		strcat(mmcargs, " video=mxcfb0:dev=ldb,if=RGB666");
+		strcat(mmcargs, " video=mxcfb0:dev=ldb,1024x600M@60,if=RGB666");
+		//strcat(mmcargs, " video=mxcfb0:dev=ldb,1024x600M@60,if=RGB24");
 	}
 
 	printf("dtb name : %s\r\n", fdtname);

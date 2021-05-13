@@ -9,6 +9,8 @@
 #include <dt-bindings/sound/fsl-imx-audmux.h>
 
 / {
+	device_tree_ver = "v0.0.5";
+
 	aliases {
 		mxcfb0 = &mxcfb1;
 		mxcfb1 = &mxcfb2;
@@ -71,10 +73,10 @@
 		};
 	};
 
-	gpio_switch {
-		compatible = "gpio_switch";
+	gpio_jw {
+		compatible = "gpio_jw";
 		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_gpio_switch>;
+		pinctrl-0 = <&pinctrl_gpio_jw>;
 	};
 
 	sound: sound {
@@ -123,7 +125,7 @@
 
 	mxcfb1: fb@0 {
 		compatible = "fsl,mxc_sdc_fb";
-		interface_pix_fmt = "RGB24";
+        interface_pix_fmt = "RGB24";
 		default_bpp = <32>;
 		int_clk = <0>;
 		late_init = <0>;
@@ -132,6 +134,7 @@
 	mxcfb2: fb@1 {
         compatible = "fsl,mxc_sdc_fb";
         interface_pix_fmt = "RGB666";
+        //interface_pix_fmt = "RGB24";
 		disp_dev = "ldb";
         default_bpp = <32>;
         int_clk = <0>;
@@ -391,6 +394,32 @@
 				MX6QDL_PAD_DI0_PIN4__GPIO4_IO20		0x1b0b0
 				/* BT_Check */
 				MX6QDL_PAD_NANDF_CS2__GPIO6_IO15	0x1b0b0
+
+				/* GPIO_V33_In 0-3 */
+				MX6QDL_PAD_CSI0_DATA_EN__GPIO5_IO20	0x1b0b0
+				MX6QDL_PAD_CSI0_VSYNC__GPIO5_IO21	0x1b0b0
+				MX6QDL_PAD_CSI0_DAT4__GPIO5_IO22	0x1b0b0
+				MX6QDL_PAD_CSI0_DAT5__GPIO5_IO23	0x1b0b0
+				/* GPIO_V33_Out 0-3 */
+				MX6QDL_PAD_CSI0_DAT6__GPIO5_IO24	0x1b0b0
+				MX6QDL_PAD_CSI0_DAT7__GPIO5_IO25	0x1b0b0			
+				MX6QDL_PAD_CSI0_DAT8__GPIO5_IO26	0x1b0b0
+				MX6QDL_PAD_CSI0_DAT9__GPIO5_IO27	0x1b0b0
+				/* GPIO_V50_Out_CTL */
+				MX6QDL_PAD_SD3_RST__GPIO7_IO08		0x1b0b0
+				/* GPIO_V50_In_CTL */
+				MX6QDL_PAD_GPIO_17__GPIO7_IO12		0x1b0b0
+				/* GPIO_V50_In 0-3*/
+				MX6QDL_PAD_CSI0_DAT14__GPIO6_IO00	0x1b0b0
+				MX6QDL_PAD_CSI0_DAT15__GPIO6_IO01	0x1b0b0
+				MX6QDL_PAD_CSI0_DAT16__GPIO6_IO02	0x1b0b0
+				MX6QDL_PAD_CSI0_DAT17__GPIO6_IO03	0x1b0b0
+				/* GPIO_V50_Out 0-3 */
+				MX6QDL_PAD_EIM_D16__GPIO3_IO16		0x1b0b0
+				MX6QDL_PAD_EIM_D17__GPIO3_IO17		0x1b0b0
+				MX6QDL_PAD_EIM_D18__GPIO3_IO18		0x1b0b0
+				MX6QDL_PAD_EIM_D19__GPIO3_IO19		0x1b0b0
+				MX6QDL_PAD_EIM_D20__GPIO3_IO20		0x1b0b0
 			>;
 		};
 
@@ -439,33 +468,8 @@
 			>;
 		};
 
-		pinctrl_gpio_switch: gpio_switchgrp {
+		pinctrl_gpio_jw: gpio_jwgrp {
 			fsl,pins = <
-				/* GPIO_V33_In 0-3 */
-				MX6QDL_PAD_CSI0_DATA_EN__GPIO5_IO20	0x1b0b0
-				MX6QDL_PAD_CSI0_VSYNC__GPIO5_IO21	0x1b0b0
-				MX6QDL_PAD_CSI0_DAT4__GPIO5_IO22	0x1b0b0
-				MX6QDL_PAD_CSI0_DAT5__GPIO5_IO23	0x1b0b0
-				/* GPIO_V33_Out 0-3 */
-				MX6QDL_PAD_CSI0_DAT6__GPIO5_IO24	0x1b0b0
-				MX6QDL_PAD_CSI0_DAT7__GPIO5_IO25	0x1b0b0			
-				MX6QDL_PAD_CSI0_DAT8__GPIO5_IO26	0x1b0b0
-				MX6QDL_PAD_CSI0_DAT9__GPIO5_IO27	0x1b0b0
-				/* GPIO_V50_Out_CTL */
-				MX6QDL_PAD_SD3_RST__GPIO7_IO08		0x1b0b0
-				/* GPIO_V50_In_CTL */
-				MX6QDL_PAD_GPIO_17__GPIO7_IO12		0x1b0b0
-				/* GPIO_V50_In 0-3*/
-				MX6QDL_PAD_CSI0_DAT14__GPIO6_IO00
-				MX6QDL_PAD_CSI0_DAT15__GPIO6_IO01
-				MX6QDL_PAD_CSI0_DAT16__GPIO6_IO02
-				MX6QDL_PAD_CSI0_DAT17__GPIO6_IO03
-				/* GPIO_V50_Out 0-3 */
-				MX6QDL_PAD_EIM_D16__GPIO3_IO16
-				MX6QDL_PAD_EIM_D17__GPIO3_IO17
-				MX6QDL_PAD_EIM_D18__GPIO3_IO18
-				MX6QDL_PAD_EIM_D19__GPIO3_IO19
-				MX6QDL_PAD_EIM_D20__GPIO3_IO20
 			>;
 		};
 
@@ -612,16 +616,17 @@
 
 		display-timings {
 			native-mode = <&timing0>;
-			timing0: AUO-G101STN01 {
+			timing0: EH1010SV-60B {
 				clock-frequency = <51200000>;
 				hactive = <1024>;
 				vactive = <600>;
-				hback-porch = <220>;
-				hfront-porch = <40>;
-				vback-porch = <20>;
-				vfront-porch = <7>;
-				hsync-len = <60>;
-				vsync-len = <8>;
+				hback-porch = <160>;
+				hfront-porch = <160>;
+				vback-porch = <23>;
+				vfront-porch = <10>;
+				hsync-len = <24>;
+				vsync-len = <2>;
+
 			};
 		};
 	};
@@ -629,21 +634,22 @@
 		crtc = "ipu2-di1";
 		primary;
 		fsl,data-mapping = "spwg";
+		//fsl,data-width = <24>;
 		fsl,data-width = <18>;
 		/* Single Channel Uses LVDS1 Channels */
 		status = "disabled";
 		display-timings {
 			native-mode = <&timing1>;
-			timing1: AUO-G101STN01 {
+			timing1: EH1010SV-60B {
 				clock-frequency = <51200000>;
 				hactive = <1024>;
 				vactive = <600>;
-				hback-porch = <220>;
-				hfront-porch = <40>;
-				vback-porch = <20>;
-				vfront-porch = <7>;
-				hsync-len = <60>;
-				vsync-len = <8>;
+				hback-porch = <160>;
+				hfront-porch = <160>;
+				vback-porch = <23>;
+				vfront-porch = <10>;
+				hsync-len = <24>;
+				vsync-len = <2>;
 			};
 		};
 	};
