@@ -10,3 +10,13 @@ fi
 
 #hw clock -> system clock
 hwclock -s
+
+#GPIO Control
+echo 200 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio200/direction
+echo 0 > /sys/class/gpio/gpio200/value
+
+echo 204 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio204/direction
+echo 0 > /sys/class/gpio/gpio204/value
+
