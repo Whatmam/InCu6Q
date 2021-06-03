@@ -9,7 +9,7 @@
 #include <dt-bindings/sound/fsl-imx-audmux.h>
 
 / {
-	device_tree_ver = "v0.0.5";
+	device_tree_ver = "v0.0.6";
 
 	aliases {
 		mxcfb0 = &mxcfb1;
@@ -38,7 +38,6 @@
 			regulator-max-microvolt = <3300000>;
 			gpio = <&gpio1 4 0>;
 			enable-active-low;
-
             regulator-always-on;
 		};
 
@@ -61,7 +60,6 @@
 			gpio = <&gpio2 9 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
 		};
-
 	};
 
 	leds {
@@ -98,16 +96,15 @@
 		//hp-det = <3 0>;
 		//hp-det-gpios = <&gpio5 4 0>;
 		//mic-det-gpios = <&gpio5 4 0>;
+		en-gpios = <&gpio2 12 0>;
 		audio-routing =
-			/*
 			"Headphone Jack", "HP_L",
 			"Headphone Jack", "HP_R",
-			*/
+			/*
 			"Ext Spk", "SPK_LP",
 			"Ext Spk", "SPK_LN",
 			"Ext Spk", "SPK_RP",
 			"Ext Spk", "SPK_RN",
-			/*
 			"LINPUT2", "Mic Jack",
 			"LINPUT3", "Mic Jack",
 			"RINPUT1", "Main MIC",
@@ -129,8 +126,9 @@
 		default_bpp = <32>;
 		int_clk = <0>;
 		late_init = <0>;
-		status = "disabled";
+        status = "disabled";
 	};
+
 	mxcfb2: fb@1 {
         compatible = "fsl,mxc_sdc_fb";
         interface_pix_fmt = "RGB666";
@@ -180,9 +178,30 @@
 	pinctrl-0 = <&pinctrl_enet>;
 	phy-mode = "rmii";
 	phy-reset-gpios = <&gpio6 28 GPIO_ACTIVE_LOW>;
-	ref-clock = <50000000>;
 	fsl,magic-packet;
+
+	phy-reset-duration = <100>;
+	phy-reset-post-delay = <10>;
+	ref-clock = <50000000>;
 	status = "okay";
+	phy-handle = <&ethphy0>;
+
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "okay";
+
+		ethphy0: ethernet-phy@0 {
+
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <0>;
+			interrupt-parent = <&gpio6>;
+			interrupts = <27 IRQ_TYPE_EDGE_FALLING>;
+			//interrupt-controller;
+			//#interrupt-cells = <2>;
+			smsc,disable-energy-detect;
+		};
+	};
 };
 
 &gpc {
@@ -202,7 +221,6 @@
 	status = "okay";
 
 	/* Codec & ADC */
-
 	codec: wm8960@1a {
 		#sound-dai-cells = <0>;
 		compatible = "wlf,wm8960";
@@ -214,9 +232,9 @@
 		status = "okay";
 	};
 
-	adc: adc081c@50 {
-		compatible = "ti,adc081c";
-		reg = <0x50>;
+	rtc: pcf8523@68 {
+		compatible = "nxp,pcf8523";
+		reg = <0x68>;
 		status = "okay";
 	};
 };
@@ -357,11 +375,6 @@
 			};
 		};
 	};
-
-	rtc: pcf8523@68 {
-		compatible = "nxp,pcf8523";
-		reg = <0x68>;
-	};
 };
 
 
@@ -384,7 +397,10 @@
 				MX6QDL_PAD_SD4_DAT6__GPIO2_IO14 0x1b0b1
 				/* TODO USBH3 OVC */
 				MX6QDL_PAD_SD4_DAT7__GPIO2_IO15 0x1b0b1
+				/* CDS GPIO */
+				MX6QDL_PAD_KEY_COL2__GPIO4_IO10 0x30b0
 				/* SPK_PWR_EN */
+				/* Audio_AMP_CTL */
 				MX6QDL_PAD_SD4_DAT4__GPIO2_IO12 	0x1b0b1
 				/* RTC_nINT1 */
 				MX6QDL_PAD_SD4_DAT5__GPIO2_IO13 	0x1b0b1
@@ -401,25 +417,25 @@
 				MX6QDL_PAD_CSI0_DAT4__GPIO5_IO22	0x1b0b0
 				MX6QDL_PAD_CSI0_DAT5__GPIO5_IO23	0x1b0b0
 				/* GPIO_V33_Out 0-3 */
-				MX6QDL_PAD_CSI0_DAT6__GPIO5_IO24	0x1b0b0
-				MX6QDL_PAD_CSI0_DAT7__GPIO5_IO25	0x1b0b0			
-				MX6QDL_PAD_CSI0_DAT8__GPIO5_IO26	0x1b0b0
-				MX6QDL_PAD_CSI0_DAT9__GPIO5_IO27	0x1b0b0
+				MX6QDL_PAD_CSI0_DAT6__GPIO5_IO24	0x30b0
+				MX6QDL_PAD_CSI0_DAT7__GPIO5_IO25	0x30b0			
+				MX6QDL_PAD_CSI0_DAT8__GPIO5_IO26	0x30b0
+				MX6QDL_PAD_CSI0_DAT9__GPIO5_IO27	0x30b0
 				/* GPIO_V50_Out_CTL */
-				MX6QDL_PAD_SD3_RST__GPIO7_IO08		0x1b0b0
+				MX6QDL_PAD_SD3_RST__GPIO7_IO08		0x1b0b1
 				/* GPIO_V50_In_CTL */
-				MX6QDL_PAD_GPIO_17__GPIO7_IO12		0x1b0b0
+				MX6QDL_PAD_GPIO_17__GPIO7_IO12		0x1b0b1
 				/* GPIO_V50_In 0-3*/
 				MX6QDL_PAD_CSI0_DAT14__GPIO6_IO00	0x1b0b0
 				MX6QDL_PAD_CSI0_DAT15__GPIO6_IO01	0x1b0b0
 				MX6QDL_PAD_CSI0_DAT16__GPIO6_IO02	0x1b0b0
 				MX6QDL_PAD_CSI0_DAT17__GPIO6_IO03	0x1b0b0
 				/* GPIO_V50_Out 0-3 */
-				MX6QDL_PAD_EIM_D16__GPIO3_IO16		0x1b0b0
-				MX6QDL_PAD_EIM_D17__GPIO3_IO17		0x1b0b0
-				MX6QDL_PAD_EIM_D18__GPIO3_IO18		0x1b0b0
-				MX6QDL_PAD_EIM_D19__GPIO3_IO19		0x1b0b0
-				MX6QDL_PAD_EIM_D20__GPIO3_IO20		0x1b0b0
+				MX6QDL_PAD_EIM_D16__GPIO3_IO16		0x30b0
+				MX6QDL_PAD_EIM_D17__GPIO3_IO17		0x30b0
+				MX6QDL_PAD_EIM_D18__GPIO3_IO18		0x30b0
+				MX6QDL_PAD_EIM_D19__GPIO3_IO19		0x30b0
+				MX6QDL_PAD_EIM_D20__GPIO3_IO20		0x30b0
 			>;
 		};
 
@@ -449,21 +465,22 @@
 
 		pinctrl_enet: enetgrp {
 			fsl,pins = <
-				MX6QDL_PAD_ENET_MDC__ENET_MDC           0x1b0b0
-		        	MX6QDL_PAD_ENET_MDIO__ENET_MDIO         0x1b0b0
-           			MX6QDL_PAD_ENET_RXD0__ENET_RX_DATA0     0x1b0b0
-		        	MX6QDL_PAD_ENET_RXD1__ENET_RX_DATA1     0x1b0b0
-     	    	  		MX6QDL_PAD_ENET_TX_EN__ENET_TX_EN       0x1b0b0
-			        MX6QDL_PAD_ENET_TXD0__ENET_TX_DATA0     0x1b0b0
-    	   			MX6QDL_PAD_ENET_TXD1__ENET_TX_DATA1     0x1b0b0
-   		 	        MX6QDL_PAD_ENET_CRS_DV__ENET_RX_EN      0x1b0b0				
-				MX6QDL_PAD_GPIO_16__ENET_REF_CLK	0x4001b0a8
+				MX6QDL_PAD_ENET_MDC__ENET_MDC           0x10030
+		        MX6QDL_PAD_ENET_MDIO__ENET_MDIO         0x10030
+           		MX6QDL_PAD_ENET_RXD0__ENET_RX_DATA0     0x10038
+		        MX6QDL_PAD_ENET_RXD1__ENET_RX_DATA1     0x10038
+    	        MX6QDL_PAD_ENET_CRS_DV__ENET_RX_EN      0x10038
+		        MX6QDL_PAD_ENET_TXD0__ENET_TX_DATA0     0x10039
+       			MX6QDL_PAD_ENET_TXD1__ENET_TX_DATA1     0x10039
+           		MX6QDL_PAD_ENET_TX_EN__ENET_TX_EN       0x10039
+				MX6QDL_PAD_GPIO_16__ENET_REF_CLK		0x4001b0b8
+				//MX6QDL_PAD_ENET_RX_ER__ENET_RX_ER	0x100b0
 
 				/* LAN8720 PHY nINT */
-				MX6QDL_PAD_RGMII_RD1__GPIO6_IO27	0x1b0b1
+				MX6QDL_PAD_RGMII_RD1__GPIO6_IO27		0x1b0b9
 
 				/* LAN8720 PHY Reset */
-       				MX6QDL_PAD_RGMII_RD2__GPIO6_IO28	0x1b0b1
+       			MX6QDL_PAD_RGMII_RD2__GPIO6_IO28		0x1b0b9
 
 			>;
 		};
@@ -482,8 +499,8 @@
 
 		pinctrl_i2c3: i2c3grp {
 			fsl,pins = <
-				MX6QDL_PAD_GPIO_5__I2C3_SCL		0x4001b8b1
-				MX6QDL_PAD_GPIO_6__I2C3_SDA		0x4001b8b1
+				MX6QDL_PAD_GPIO_5__I2C3_SCL		0x4001b8b9
+				MX6QDL_PAD_GPIO_6__I2C3_SDA		0x4001b8b9
 			>;
 		};
 
@@ -534,7 +551,6 @@
 				/*MX6QDL_PAD_SD1_DAT3__PWM1_OUT		0x1b0b1*/
 				MX6QDL_PAD_SD4_DAT1__GPIO2_IO09		0x1a0b1
 				MX6QDL_PAD_SD4_DAT2__PWM4_OUT		0x1a0b1
-
 			>;
 		};
 
@@ -626,7 +642,6 @@
 				vfront-porch = <10>;
 				hsync-len = <24>;
 				vsync-len = <2>;
-
 			};
 		};
 	};
@@ -664,7 +679,6 @@
 &pwm4 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pwm4>;
-
 	status = "okay";
 };
 
@@ -683,8 +697,6 @@
 &snvs_poweroff {
 	status = "okay";
 };
-
-
 
 &ssi1 {
 	status = "okay";
