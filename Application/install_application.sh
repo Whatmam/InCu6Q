@@ -51,3 +51,5 @@ cp gst_video_fb.sh ../Filesystem/rootfs_files/home/root/Test/
 cp lcd_test.sh ../Filesystem/rootfs_files/home/root/Test/
 cp rtc_test.sh ../Filesystem/rootfs_files/home/root/Test/
 cp total_test/test_dialog ../Filesystem/rootfs_files/home/root/Test/
+cp kernel_update.sh ../Filesystem/rootfs_files/home/root/Test/
+
