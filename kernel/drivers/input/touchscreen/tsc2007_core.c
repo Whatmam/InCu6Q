@@ -88,7 +88,7 @@ static void tsc2007_read_values(struct tsc2007 *tsc, struct ts_event *tc)
         zz2[i] = tsc2007_xfer(tsc, READ_Z2);
     }
     Quick_Sort(xx, count);
-	printk("[ %d %d %d ]", xx[0],xx[1],xx[2]);
+//	printk("[ %d %d %d ]", xx[0],xx[1],xx[2]);
     Quick_Sort(yy, count);
     Quick_Sort(zz1, count);
     Quick_Sort(zz2, count);
