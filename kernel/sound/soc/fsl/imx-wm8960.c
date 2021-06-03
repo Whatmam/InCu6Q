@@ -55,6 +55,9 @@ struct imx_wm8960_data {
 struct imx_priv {
 	enum of_gpio_flags hp_active_low;
 	enum of_gpio_flags mic_active_low;
+	enum of_gpio_flags en_active_low;
+	int en_audio_gpio;
+	bool is_en_gpio;
 	bool is_headset_jack;
 	struct snd_kcontrol *headphone_kctl;
 	struct platform_device *pdev;
@@ -212,8 +215,8 @@ static int imx_hifi_hw_params(struct snd_pcm_substream *substream,
 	unsigned int fmt;
 	int ret = 0;
 	u32 channels = params_channels(params);
-	u32 reg=0;
-	struct snd_soc_component *component = codec_dai->component;
+	//u32 reg=0;
+	//struct snd_soc_component *component = codec_dai->component;
 
 	data->is_stream_in_use[tx] = true;
 	//DBG("sample_rate : %d\n", sample_rate);
@@ -325,6 +328,7 @@ static int imx_hifi_startup(struct snd_pcm_substream *substream)
 	struct imx_wm8960_data *data = snd_soc_card_get_drvdata(card);
 	//bool tx = substream->stream == SNDRV_PCM_STREAM_PLAYBACK;
 	//struct fsl_sai *sai = dev_get_drvdata(cpu_dai->dev);
+	struct imx_priv *priv = &card_priv;
 	int ret = 0;
 
 	if (!data->is_codec_master) {
@@ -341,6 +345,10 @@ static int imx_hifi_startup(struct snd_pcm_substream *substream)
 		return ret;
 	}
 
+	if(priv->is_en_gpio)
+	{
+		gpio_set_value(priv->en_audio_gpio, 1);
+	}
 
 	return ret;
 }
@@ -351,8 +359,14 @@ static void imx_hifi_shutdown(struct snd_pcm_substream *substream)
 	struct snd_soc_card *card = rtd->card;
 	struct imx_wm8960_data *data = snd_soc_card_get_drvdata(card);
 	bool tx = substream->stream == SNDRV_PCM_STREAM_PLAYBACK;
+	struct imx_priv *priv = &card_priv;
 
 	clk_disable_unprepare(data->codec_clk);
+
+	if(priv->is_en_gpio)
+	{
+		gpio_set_value(priv->en_audio_gpio, 0);
+	}
 
 	data->is_stream_opened[tx] = false;
 }
@@ -702,6 +716,20 @@ static int imx_wm8960_probe(struct platform_device *pdev)
 	imx_mic_jack_gpio.gpio = of_get_named_gpio_flags(pdev->dev.of_node,
 			"mic-det-gpios", 0, &priv->mic_active_low);
 
+	priv->en_audio_gpio = of_get_named_gpio_flags(pdev->dev.of_node,
+			"en-gpios", 0, &priv->en_active_low);
+
+	if(gpio_is_valid(priv->en_audio_gpio))
+	{
+		priv->is_en_gpio = true;
+		gpio_request(priv->en_audio_gpio, "SPK Amp En GPIO");
+		gpio_direction_output(priv->en_audio_gpio, 0);
+	}
+	else
+	{
+		priv->is_en_gpio = false;
+	}
+
 	if (gpio_is_valid(imx_hp_jack_gpio.gpio) &&
 	    gpio_is_valid(imx_mic_jack_gpio.gpio) &&
 	    imx_hp_jack_gpio.gpio == imx_mic_jack_gpio.gpio)
@@ -756,8 +784,19 @@ fail:
 
 static int imx_wm8960_remove(struct platform_device *pdev)
 {
+	struct imx_priv *priv = &card_priv;
 	driver_remove_file(pdev->dev.driver, &driver_attr_micphone);
 	driver_remove_file(pdev->dev.driver, &driver_attr_headphone);
+
+	if(gpio_is_valid(priv->en_audio_gpio))
+	{
+		priv->is_en_gpio = true;
+		gpio_free(priv->en_audio_gpio);
+	}
+	else
+	{
+		priv->is_en_gpio = false;
+	}
 
 	return 0;
 }
