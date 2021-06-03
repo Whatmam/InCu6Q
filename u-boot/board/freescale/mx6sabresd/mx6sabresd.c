@@ -77,11 +77,11 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define I2C_PAD MUX_PAD_CTRL(I2C_PAD_CTRL)
 
-#define DISP0_PWR_EN	IMX_GPIO_NR(1, 21)
-
 #define KEY_VOL_UP	IMX_GPIO_NR(1, 4)
 
 #define LCD_EN	IMX_GPIO_NR(2, 9)
+#define ETH_NRST	IMX_GPIO_NR(6, 28)
+#define AMP_EN		IMX_GPIO_NR(2, 12)
 
 int dram_init(void)
 {
@@ -95,6 +95,8 @@ static iomux_v3_cfg_t const uart1_pads[] = {
 	IOMUX_PADS(PAD_SD3_DAT6__UART1_RX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD3_DAT7__UART1_TX_DATA | MUX_PAD_CTRL(UART_PAD_CTRL)),
 	IOMUX_PADS(PAD_SD4_DAT1__GPIO2_IO09	| MUX_PAD_CTRL(UART_PAD_CTRL)),
+	IOMUX_PADS(PAD_RGMII_RD2__GPIO6_IO28	| MUX_PAD_CTRL(UART_PAD_CTRL)),
+	IOMUX_PADS(PAD_SD4_DAT4__GPIO2_IO12	| MUX_PAD_CTRL(UART_PAD_CTRL)),
 };
 
 static iomux_v3_cfg_t const enet_pads[] = {
@@ -816,8 +818,8 @@ int setup_gpio_switchs(void)
         gpio_direction_input(LCD_MODE_SWITCH_RGB);
         gpio_direction_input(LCD_MODE_SWITCH_LVDS);
 
-        printf("lcd_mode_switch_rgb=%d\r\n", gpio_get_value(LCD_MODE_SWITCH_RGB));
-        printf("lcd_mode_switch_lvds=%d\r\n", gpio_get_value(LCD_MODE_SWITCH_LVDS));
+        //printf("lcd_mode_switch_rgb=%d\r\n", gpio_get_value(LCD_MODE_SWITCH_RGB));
+        //printf("lcd_mode_switch_lvds=%d\r\n", gpio_get_value(LCD_MODE_SWITCH_LVDS));
 
         return ret;
 }
@@ -828,18 +830,16 @@ int check_load_fdt(void)
 	char fdtname[30];
 	char env[10];
 	int tmp;
-	char mmcargs[100];
+	char mmcargs[300];
 	char *mmcargs_ptr = env_get("mmcargs");
 	setup_gpio_switchs();
 
 	switch_value = (gpio_get_value(LCD_MODE_SWITCH_RGB) | (gpio_get_value(LCD_MODE_SWITCH_LVDS) << 1));
-    printf("lcd_mode_switch_value=%d\r\n", switch_value);
-
+    //printf("lcd_mode_switch_value=%d\r\n", switch_value);
 
 	memset(fdtname, NULL, 30);
 	memset(env, NULL, 10);
 	memset(mmcargs, NULL, 50);
-	//memcpy(mmcargs, mmcargs_ptr, strlen(mmcargs_ptr));
 	strcpy(mmcargs, mmcargs_ptr);
 #ifdef CONFIG_MX6Q
 	sprintf(fdtname, "imx6q-JW-incu6-");
@@ -855,6 +855,7 @@ int check_load_fdt(void)
 	{
 		strcat(fdtname, "lvds.dtb");
 		strcat(mmcargs, " video=mxcfb0:dev=ldb,1024x600M@60,if=RGB666");
+		//strcat(mmcargs, " video=mxcfb0:dev=ldb,1024x600M@60,if=RGB666 cma=448M galcore.contiguousSize=134217728 gpumem=128M");
 		//strcat(mmcargs, " video=mxcfb0:dev=ldb,1024x600M@60,if=RGB24");
 	}
 
@@ -867,9 +868,12 @@ int board_init(void)
 {
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
-	
 	gpio_request(LCD_EN, "LCD Enable");
 	gpio_direction_output(LCD_EN, 0);
+	gpio_request(ETH_NRST, "Eth0 NRST");
+	gpio_direction_output(ETH_NRST, 0);
+	gpio_request(AMP_EN, "AMP_EN");
+	gpio_direction_output(AMP_EN, 0);
 
 #if defined(CONFIG_DM_REGULATOR)
 	regulators_enable_boot_on(false);
@@ -894,7 +898,7 @@ int board_init(void)
 
 	return 0;
 }
-
+#if 0
 #ifdef CONFIG_POWER
 int power_init_board(void)
 {
@@ -1004,13 +1008,13 @@ int power_init_board(void)
 		/* Increase VGEN3 from 2.5 to 2.8V */
 		reg = pmic_reg_read(dev, PFUZE100_VGEN3VOL);
 		reg &= ~LDO_VOL_MASK;
-		reg |= LDOB_2_80V;
+		reg |= LDOB_2_50V;
 		pmic_reg_write(dev, PFUZE100_VGEN3VOL, reg);
 
 		/* Increase VGEN5 from 2.8 to 3V */
 		reg = pmic_reg_read(dev, PFUZE100_VGEN5VOL);
 		reg &= ~LDO_VOL_MASK;
-		reg |= LDOB_3_00V;
+		reg |= LDOB_2_80V;
 		pmic_reg_write(dev, PFUZE100_VGEN5VOL, reg);
 	}
 
@@ -1258,6 +1262,7 @@ void ldo_mode_set(int ldo_bypass)
 }
 #endif
 #endif
+#endif
 
 #ifdef CONFIG_CMD_BMODE
 static const struct boot_mode board_boot_modes[] = {
@@ -1296,13 +1301,13 @@ int board_late_init(void)
 	board_late_mmc_env_init();
 #endif
 	check_load_fdt();
-	
+
 	return 0;
 }
 
 int checkboard(void)
 {
-	puts("Board: MX6Q-Whatmam-InCu6\n");
+	puts("Board: MX6Q-Hybus-InCu6\n");
 	return 0;
 }
 
