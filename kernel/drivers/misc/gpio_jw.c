@@ -41,9 +41,7 @@
 #define             GPIO6_02            162
 #define             GPIO6_03            163
 
-#define             GPIO7_08            200
-#define             GPIO7_12            204
-
+#define             CDS_IRQ              106     //GPIO4_10
 #define             LED_CTL_1            110     //GPIO4_14
 #define             LED_CTL_2            111     //GPIO4_15
 #define             LED_CTL_3            116     //GPIO4_20
@@ -92,7 +90,7 @@ long gpio_jw_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             if (copy_from_user(&info, (void __user *)arg, sizeof(info))) {
                 return -EFAULT;
             }
-
+            /*
             if(info.value)
             {
                     printk("[DEV] SET_LED_CTL_1 High\r\n");
@@ -101,12 +99,14 @@ long gpio_jw_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             {
                     printk("[DEV] SET_LED_CTL_1 Low\r\n");
             }
+            */
             gpio_set_value(LED_CTL_1,info.value);
             break;
         case SET_LED_CTL_2:
             if (copy_from_user(&info, (void __user *)arg, sizeof(info))) {
                 return -EFAULT;
             }
+            /*
             if(info.value)
             {
                     printk("[DEV] SET_LED_CTL_2 High\r\n");
@@ -115,13 +115,14 @@ long gpio_jw_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             {
                     printk("[DEV] SET_LED_CTL_2 Low\r\n");
             }
-
+            */
             gpio_set_value(LED_CTL_2,info.value);
             break;
         case SET_LED_CTL_3:
             if (copy_from_user(&info, (void __user *)arg, sizeof(info))) {
                 return -EFAULT;
             }
+            /*
             if(info.value)
             {
                     printk("[DEV] SET_LED_CTL_3 High\r\n");
@@ -130,7 +131,7 @@ long gpio_jw_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             {
                     printk("[DEV] SET_LED_CTL_3 Low\r\n");
             }
-
+            */
             gpio_set_value(LED_CTL_3,info.value);
             break;
         default:
@@ -138,7 +139,7 @@ long gpio_jw_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             if(arg == 2 || arg == 3)
             {
                 arg == 3 ? strcpy(state,"Set HIGH") : strcpy(state,"Set LOW");
-                printk("[DEV] GPIO %s\r\n",state);
+                //printk("[DEV] GPIO %s\r\n",state);
                 arg &= ~(0x1 << 1);
 
             gpio_set_value(cmd,arg);
@@ -172,7 +173,7 @@ ssize_t gpio_jw_write(struct file *f, const char __user *data, size_t size, loff
         return -1;
     }
     else{
-        printk("[DEV] number : %d, IO : %d\r\n", gpio_buf_data.number, gpio_buf_data.value);
+        //printk("[DEV] number : %d, IO : %d\r\n", gpio_buf_data.number, gpio_buf_data.value);
         //gpio_request(gpio, "gpio_jw");
         //gpio_set_value(gpio_buf_data.number,gpio_buf_data.value);
         //gpio_direction_output(gpio_buf_data.number, gpio_buf_data.value);
@@ -289,19 +290,12 @@ static int gpio_jw_probe(struct platform_device *pdev)
     else 
         gpio_direction_input(GPIO6_03);
 
-    /* GPIO_V50_Out_CTL */ 
-    /* GPIO_V50_In_CTL */
-        ret = gpio_request(GPIO7_08, "gpio jw");
+    /* ADC Convertor */
+        ret = gpio_request(CDS_IRQ, "ADC Convertor");
     if(ret)
-        printk("#### FAILED Request gpio %d. error : %d \n", GPIO7_08, ret);
+        printk("#### FAILED Request gpio %d. error : %d \n", CDS_IRQ, ret);
     else 
-        gpio_direction_output(GPIO7_08, 0);  
-
-        ret = gpio_request(GPIO7_12, "gpio jw");
-    if(ret)
-        printk("#### FAILED Request gpio %d. error : %d \n", GPIO7_12, ret);
-    else 
-        gpio_direction_output(GPIO7_12,0);
+        gpio_direction_output(CDS_IRQ, 0);
 
 
     /* LED_CTL_1 ~ LED_CTL_3 */
@@ -384,16 +378,13 @@ static void __exit gpio_jw_device_exit(void)
     for(i=160;i<=163;i++)
         gpio_free(i);
 
+    gpio_free(106);
     gpio_free(110);
     gpio_free(111);
     gpio_free(116);
-
-    gpio_free(200);
-    gpio_free(204);
 }
 
 module_init(gpio_jw_device_init);
 module_exit(gpio_jw_device_exit);
 
 MODULE_LICENSE("GPL");
-

@@ -54,12 +54,36 @@
 
 		reg_rgb_lcd: regulator-rgb-lcd {
 			compatible = "regulator-fixed";
+			reg = <2>;
 			regulator-name = "lcd-rgb-power";
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
 			gpio = <&gpio2 9 GPIO_ACTIVE_HIGH>;
 			enable-active-high;
+			regulator-always-on;
 		};
+		
+		reg_gpio_out: regulator-gpio-out {
+			compatible = "regulator-fixed";
+			reg = <3>;
+			regulator-name = "gpio-out-power";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio7 8 GPIO_ACTIVE_LOW>;
+			enable-active-low;
+            regulator-always-on;
+		};
+
+		reg_gpio_in: regulator-gpio-in {
+			compatible = "regulator-fixed";
+			regulator-name = "gpio-in-power";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			gpio = <&gpio7 12 GPIO_ACTIVE_LOW>;
+			enable-active-low;
+            regulator-always-on;
+		};
+
 	};
 
 	leds {
@@ -422,9 +446,9 @@
 				MX6QDL_PAD_CSI0_DAT8__GPIO5_IO26	0x30b0
 				MX6QDL_PAD_CSI0_DAT9__GPIO5_IO27	0x30b0
 				/* GPIO_V50_Out_CTL */
-				MX6QDL_PAD_SD3_RST__GPIO7_IO08		0x1b0b1
+				MX6QDL_PAD_SD3_RST__GPIO7_IO08		0x30b0
 				/* GPIO_V50_In_CTL */
-				MX6QDL_PAD_GPIO_17__GPIO7_IO12		0x1b0b1
+				MX6QDL_PAD_GPIO_17__GPIO7_IO12		0x30b0
 				/* GPIO_V50_In 0-3*/
 				MX6QDL_PAD_CSI0_DAT14__GPIO6_IO00	0x1b0b0
 				MX6QDL_PAD_CSI0_DAT15__GPIO6_IO01	0x1b0b0

@@ -59,6 +59,13 @@ int main(int argc, char * argv[])
 				"| 204 | GPIO_V50_In_CTL  |    22    |\n"	
 				"+-----+------------------+----------+\n\n");									
 
+		printf ("+-----+---AD Convertor---+----JC6---+\n"
+				"| sys |       Name       | Physical |\n"
+				"+-----+------------------+----------+\n"
+				"|     | VDD_V50D         |     1    |\n"
+				"| 106 | GPIO4_10         |     2    |\n"
+				"|     | DGND             |     3    |\n"
+				"+-----+------------------+----------+\n\n");
 
 		printf ("+-----+---Alarm LED CTL--+----JC4---+\n"
 				"| sys |       Name       | Physical |\n"
