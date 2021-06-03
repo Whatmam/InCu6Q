@@ -247,6 +247,10 @@ int print_cpuinfo(void)
 
 	cpurev = get_cpu_rev();
 
+	printf("########################################################################\n");
+	printf("################### InCu6Q Bootloader Version v0.0.6 ###################\n");
+	printf("########################################################################\n");
+
 #if defined(CONFIG_IMX_THERMAL) || defined(CONFIG_NXP_TMU)
 	struct udevice *thermal_dev;
 	int cpu_tmp, minc, maxc, ret;
