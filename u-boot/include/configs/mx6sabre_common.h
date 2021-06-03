@@ -216,7 +216,7 @@
 		"fi\0" \
 	EMMC_ENV	  \
 	"smp=" SYS_NOSMP "\0"\
-	"mmcargs=setenv bootargs console=${console},${baudrate} root=${mmcroot}\0" \
+	"mmcargs=setenv bootargs console=${console},${baudrate} root=${mmcroot} cma=448M galcore.contiguousSize=50331648 coherent_pool=6M\0" \
 	"loadbootscript=" \
 		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
 	"bootscript=echo Running bootscript from mmc ...; " \
@@ -405,20 +405,20 @@
 
 /* PMIC */
 #ifndef CONFIG_DM_PMIC
-#define CONFIG_POWER
-#define CONFIG_POWER_I2C
-#define CONFIG_POWER_PFUZE100
-#define CONFIG_POWER_PFUZE100_I2C_ADDR 0x08
+//#define CONFIG_POWER
+//#define CONFIG_POWER_I2C
+//#define CONFIG_POWER_PFUZE100
+//#define CONFIG_POWER_PFUZE100_I2C_ADDR 0x08
 #endif
 
 /* Framebuffer */
 #define CONFIG_VIDEO_IPUV3
-#define CONFIG_VIDEO_BMP_RLE8
-#define CONFIG_SPLASH_SCREEN
-#define CONFIG_SPLASH_SCREEN_ALIGN
-#define CONFIG_BMP_16BPP
-#define CONFIG_VIDEO_LOGO
-#define CONFIG_VIDEO_BMP_LOGO
+//#define CONFIG_VIDEO_BMP_RLE8
+//#define CONFIG_SPLASH_SCREEN
+//#define CONFIG_SPLASH_SCREEN_ALIGN
+//#define CONFIG_BMP_16BPP
+//#define CONFIG_VIDEO_LOGO
+//#define CONFIG_VIDEO_BMP_LOGO
 #define CONFIG_IMX_HDMI
 #define CONFIG_IMX_VIDEO_SKIP
 
