@@ -1596,8 +1596,8 @@ state.wm8960audio {
 	control.11 {
 		iface MIXER
 		name 'Headphone Playback Volume'
-		value.0 0
-		value.1 0
+		value.0 255
+		value.1 255
 		comment {
 			access 'read write'
 			type INTEGER
@@ -1623,8 +1623,8 @@ state.wm8960audio {
 	control.13 {
 		iface MIXER
 		name 'Speaker Playback Volume'
-		value.0 127
-		value.1 127
+		value.0 0
+		value.1 0
 		comment {
 			access 'read write'
 			type INTEGER
