@@ -25,12 +25,8 @@
 		"\0" \
 	"kboot="MFG_BOOT_CMD"\0"\
 	"bootcmd_mfg=run mfgtool_args;" \
-        "if iminfo ${initrd_addr}; then " \
-            "if test ${tee} = yes; then " \
-                "bootm ${tee_addr} ${initrd_addr} ${fdt_addr}; " \
-            "else " \
-                MFG_BOOT_CMD "${loadaddr} ${initrd_addr} ${fdt_addr}; " \
-            "fi; " \
+        "if iminfo 0x1c000000; then " \
+                MFG_BOOT_CMD "0x10000000 0x1c000000 0x18200000; " \
         "else " \
 		FASTBOOT_CMD  \
         "fi;\0" \
